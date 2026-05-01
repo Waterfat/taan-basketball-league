@@ -1,0 +1,41 @@
+# 測試環境清單（qa-v2 必要產物）
+# 提供 qa-v2 / pm-v2 判斷各環境的測試端點
+
+environments:
+  dev:
+    url: http://localhost:4321
+    description: 本地開發（Astro Vite HMR）
+    auth_required: false
+    notes: |
+      啟動：npm run dev
+      預設 port 4321
+
+  prod:
+    url: https://waterfat.github.io/taan-basketball-league/
+    description: GitHub Pages
+    auth_required: false
+    notes: |
+      push main → GitHub Actions build → 推 gh-pages branch → Pages serve
+      base URL 包含 repo name 子路徑
+
+# 第三方依賴端點
+external:
+  google_sheets_webapp:
+    url: https://script.google.com/macros/s/{DEPLOY_ID}/exec
+    description: Google Apps Script webapp（球員/賽程/戰績資料來源）
+    fallback: data/*.json
+    notes: 改 gas/Code.gs 後需手動重新部署 GAS
+
+# 測試覆蓋目標
+coverage:
+  unit:
+    target: 70%
+    framework: Vitest
+    location: tests/unit/
+  e2e:
+    framework: Playwright
+    location: tests/e2e/
+    projects:
+      - regression（無認證、未登入行為）
+      - regression-mobile（手機版視窗）
+      - features（保留給未來會員 / 動態功能）

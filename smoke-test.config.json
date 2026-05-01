@@ -1,0 +1,38 @@
+{
+  "base_url": "https://your-app.vercel.app",
+
+  "pages_200": [
+    "/",
+    "/login"
+  ],
+
+  "auth": {
+    "nextauth": true
+  },
+
+  "protected_apis": [
+    "/api/dashboard/stats",
+    "/api/admin/users"
+  ],
+
+  "public_apis": [
+    "/api/public/items",
+    "/robots.txt",
+    "/sitemap.xml"
+  ],
+
+  "db_checks": [
+    {
+      "path": "/api/public/items?limit=1",
+      "fields": ["id", "title"],
+      "label": "Public Items API"
+    }
+  ],
+
+  "custom_checks": [
+    {
+      "label": "Health endpoint 回傳 ok",
+      "command": "curl -s {{BASE_URL}}/api/health | grep -q '\"status\":\"ok\"'"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+# 部署設定（new-project-v2 必要產物）
+# 環境 ↔ branch ↔ 部署位置對照
+
+project: taan-basketball-league
+type: web-static
+
+environments:
+  dev:
+    branch: develop
+    deploy:
+      type: local
+      command: npm run dev
+      url: http://localhost:4321
+    notes: 本地開發，Vite HMR
+
+  prod:
+    branch: main
+    deploy:
+      type: github-pages
+      workflow: .github/workflows/deploy.yml
+      url: https://waterfat.github.io/taan-basketball-league/
+    notes: |
+      push main 自動觸發
+      Actions 跑 lint + unit + e2e（regression）
+      build 出 dist/ 推到 gh-pages branch
+      GitHub Pages 從 gh-pages branch 提供服務
+
+flow:
+  source: develop
+  targets:
+    - main
+  workflow_summary: |
+    feature branch → develop（合併開發）→ main（push 觸發部署）
+
+services:
+  github:
+    repo: waterfat/taan-basketball-league
+    actions: enabled
+    pages:
+      source: gh-pages branch
+      custom_domain: null
+
+  google_apps_script:
+    role: 資料源
+    deploy_method: 手動（Apps Script Editor）
+    not_in_cicd: true
+    notes: 改 gas/Code.gs 後需手動到 Apps Script Editor 重新部署
+
+ci_cd:
+  pipeline: github-actions
+  triggers:
+    - on: push
+      branch: main
+      jobs: [lint, unit-test, e2e-regression, build, deploy]
+  manual_trigger: false  # 暫不需要 hotfix 手動觸發
+
+monitoring: false  # 純靜態站，未啟用 ops-health

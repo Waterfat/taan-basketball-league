@@ -1,0 +1,73 @@
+{
+  "season": 25,
+  "currentWeek": 5,
+  "allWeeks": [
+    {
+      "type": "game", "week": 1, "date": "2026/1/10", "phase": "熱身賽", "venue": "中正",
+      "matchups": [
+        { "combo": 1, "home": "白", "away": "紅", "homeScore": 22, "awayScore": 34, "status": "finished" },
+        { "combo": 2, "home": "黃", "away": "黑", "homeScore": 22, "awayScore": 23, "status": "finished" },
+        { "combo": 3, "home": "藍", "away": "綠", "homeScore": 20, "awayScore": 28, "status": "finished" },
+        { "combo": 4, "home": "黑", "away": "白", "homeScore": 17, "awayScore": 21, "status": "finished" },
+        { "combo": 5, "home": "紅", "away": "藍", "homeScore": 14, "awayScore": 20, "status": "finished" },
+        { "combo": 6, "home": "綠", "away": "黃", "homeScore": 21, "awayScore": 22, "status": "finished" }
+      ],
+      "games": [
+        { "num": 1, "time": "", "home": "白", "away": "紅", "homeScore": 22, "awayScore": 34, "status": "finished", "staff": {} },
+        { "num": 2, "time": "", "home": "黃", "away": "黑", "homeScore": 22, "awayScore": 23, "status": "finished", "staff": {} },
+        { "num": 3, "time": "", "home": "藍", "away": "綠", "homeScore": 20, "awayScore": 28, "status": "finished", "staff": {} },
+        { "num": 4, "time": "", "home": "黑", "away": "白", "homeScore": 17, "awayScore": 21, "status": "finished", "staff": {} },
+        { "num": 5, "time": "", "home": "紅", "away": "藍", "homeScore": 14, "awayScore": 20, "status": "finished", "staff": {} },
+        { "num": 6, "time": "", "home": "綠", "away": "黃", "homeScore": 21, "awayScore": 22, "status": "finished", "staff": {} }
+      ]
+    },
+    {
+      "type": "game", "week": 5, "date": "2026/2/7", "phase": "例行賽", "venue": "三重",
+      "matchups": [
+        { "combo": 1, "home": "黃", "away": "綠", "homeScore": 19, "awayScore": 21, "status": "finished" },
+        { "combo": 2, "home": "黑", "away": "白", "homeScore": 29, "awayScore": 15, "status": "finished" },
+        { "combo": 3, "home": "紅", "away": "藍", "homeScore": 20, "awayScore": 9, "status": "finished" },
+        { "combo": 4, "home": "白", "away": "黃", "homeScore": 15, "awayScore": 17, "status": "finished" },
+        { "combo": 5, "home": "綠", "away": "紅", "homeScore": 22, "awayScore": 21, "status": "finished" },
+        { "combo": 6, "home": "藍", "away": "黑", "homeScore": 14, "awayScore": 17, "status": "finished" }
+      ],
+      "games": [
+        { "num": 1, "time": "", "home": "黃", "away": "綠", "homeScore": 19, "awayScore": 21, "status": "finished", "staff": { "裁判": ["李昊明(黑)","李政軒(黑)","陳怡舟(白)"], "場務": ["林毅豐(黑)","喻柏淵(黑)","王昶竣(白)"], "攝影": ["陳曉川(白)"], "器材": ["林光偉(綠)"] } },
+        { "num": 2, "time": "", "home": "黑", "away": "白", "homeScore": 29, "awayScore": 15, "status": "finished", "staff": { "裁判": ["吳軒宇(紅)","江錒哲(黃)","趙伯熙(綠)"], "場務": ["阮柏翰(紅)","馮是翔(藍)","余芑滌(紅)"] } },
+        { "num": 3, "time": "", "home": "紅", "away": "藍", "homeScore": 20, "awayScore": 9, "status": "finished", "staff": {} },
+        { "num": 4, "time": "", "home": "白", "away": "黃", "homeScore": 15, "awayScore": 17, "status": "finished", "staff": {} },
+        { "num": 5, "time": "", "home": "綠", "away": "紅", "homeScore": 22, "awayScore": 21, "status": "finished", "staff": {} },
+        { "num": 6, "time": "", "home": "藍", "away": "黑", "homeScore": 14, "awayScore": 17, "status": "finished", "staff": {} }
+      ]
+    },
+    { "type": "suspended", "date": "2026/2/14", "venue": "大安", "reason": "過年連假" },
+    { "type": "suspended", "date": "2026/2/21", "venue": "大安", "reason": "過年連假" },
+    { "type": "suspended", "date": "2026/2/28", "venue": "大安", "reason": "228連假" },
+    {
+      "type": "game", "week": 6, "date": "2026/3/7", "phase": "例行賽", "venue": "中正",
+      "matchups": [
+        { "combo": 1, "home": "黃", "away": "藍", "homeScore": null, "awayScore": null, "status": "upcoming" },
+        { "combo": 2, "home": "黑", "away": "紅", "homeScore": null, "awayScore": null, "status": "upcoming" },
+        { "combo": 3, "home": "綠", "away": "白", "homeScore": null, "awayScore": null, "status": "upcoming" },
+        { "combo": 4, "home": "黑", "away": "黃", "homeScore": null, "awayScore": null, "status": "upcoming" },
+        { "combo": 5, "home": "藍", "away": "綠", "homeScore": null, "awayScore": null, "status": "upcoming" },
+        { "combo": 6, "home": "紅", "away": "白", "homeScore": null, "awayScore": null, "status": "upcoming" }
+      ],
+      "games": []
+    }
+  ],
+  "weeks": {
+    "5": {
+      "type": "game", "week": 5, "date": "2026/2/7", "phase": "例行賽", "venue": "三重",
+      "matchups": [
+        { "combo": 1, "home": "黃", "away": "綠", "homeScore": 19, "awayScore": 21, "status": "finished" },
+        { "combo": 2, "home": "黑", "away": "白", "homeScore": 29, "awayScore": 15, "status": "finished" },
+        { "combo": 3, "home": "紅", "away": "藍", "homeScore": 20, "awayScore": 9, "status": "finished" },
+        { "combo": 4, "home": "白", "away": "黃", "homeScore": 15, "awayScore": 17, "status": "finished" },
+        { "combo": 5, "home": "綠", "away": "紅", "homeScore": 22, "awayScore": 21, "status": "finished" },
+        { "combo": 6, "home": "藍", "away": "黑", "homeScore": 14, "awayScore": 17, "status": "finished" }
+      ],
+      "games": []
+    }
+  }
+}

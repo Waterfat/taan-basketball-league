@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════
+   Design Tokens（從舊 shared-styles.css 移植）
+   Tailwind 4 用 @theme 註冊 CSS 變數，class 直接用：
+   bg-navy / text-orange / rounded-r 等
+   ══════════════════════════════════════ */
+@theme {
+  /* 主色系 */
+  --color-navy: #0f1b2d;
+  --color-navy-2: #162035;
+  --color-navy-3: #1e2d45;
+  --color-navy-4: #243350;
+
+  --color-orange: #f96a1a;
+  --color-orange-2: #ff8c3f;
+  --color-orange-light: #ffecd9;
+
+  /* 背景 */
+  --color-cream: #fdf8f0;
+  --color-warm-1: #f5efe4;
+  --color-warm-2: #ede3d2;
+  --color-warm-3: #d4c4a8;
+
+  /* 文字 */
+  --color-txt-dark: #0f1b2d;
+  --color-txt-mid: #3a4a60;
+  --color-txt-light: #7a8fa8;
+
+  /* 隊伍色（與 src/config/teams.ts 對齊） */
+  --color-team-red: #e53935;
+  --color-team-black: #4a4a4a;
+  --color-team-blue: #1976d2;
+  --color-team-green: #2e7d32;
+  --color-team-yellow: #b38f00;
+  --color-team-white: #757575;
+
+  /* 圓角 */
+  --radius: 14px;
+  --radius-sm: 8px;
+
+  /* 字型（中文 fallback：Noto Sans TC） */
+  --font-hero: 'Anton', sans-serif;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-condensed: 'Barlow Condensed', sans-serif;
+  --font-body: 'Noto Sans TC', system-ui, sans-serif;
+}
+
+/* 基礎 reset */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-txt-dark);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}

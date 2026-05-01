@@ -1,0 +1,59 @@
+{
+  "season": 25,
+  "currentWeek": 3,
+  "attendance": {
+    "present": 36,
+    "absent": 8
+  },
+  "absentees": [
+    "周昱丞(紅)", "蔡一聲(紅)", "林顥軒(紅)", "李艾恩(紅)",
+    "李子昂(黑)", "陳國弘(黑)", "梁修綸(黑)", "陳彥仰(黑)"
+  ],
+  "assignments": [
+    {
+      "role": "裁判",
+      "icon": "⚖️",
+      "staff": [
+        { "name": "李昊明", "team": "黑", "count": 8 },
+        { "name": "李政軒", "team": "黑", "count": 8 },
+        { "name": "陳怡舟", "team": "白", "count": 6 }
+      ]
+    },
+    {
+      "role": "場務",
+      "icon": "🏃",
+      "staff": [
+        { "name": "林毅豐", "team": "黑", "count": 3 },
+        { "name": "喻柏淵", "team": "黑", "count": 4 },
+        { "name": "王昶竣", "team": "白", "count": 4 }
+      ]
+    },
+    {
+      "role": "攝影",
+      "icon": "📷",
+      "staff": [
+        { "name": "陳曉川", "team": "白", "count": 6 }
+      ]
+    },
+    {
+      "role": "器材",
+      "icon": "🎒",
+      "staff": [
+        { "name": "林光偉", "team": "綠", "count": 6 }
+      ]
+    },
+    {
+      "role": "數據",
+      "icon": "📊",
+      "bonus": "+1積分",
+      "staff": [
+        { "name": "韋承志", "team": "紅", "count": 8 }
+      ]
+    }
+  ],
+  "cumulativeRanking": [
+    { "rank": 1, "name": "韋承志", "team": "紅", "referee": 0, "court": 0, "photo": 0, "equip": 0, "data": 8, "total": 8 },
+    { "rank": 2, "name": "吳家豪", "team": "綠", "referee": 0, "court": 0, "photo": 0, "equip": 0, "data": 6, "total": 6 },
+    { "rank": 3, "name": "李昊明", "team": "黑", "referee": 3, "court": 0, "photo": 0, "equip": 0, "data": 0, "total": 3 }
+  ]
+}

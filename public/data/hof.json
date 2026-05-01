@@ -1,0 +1,43 @@
+{
+  "description": "聯盟歷史 · 第11–19屆、第24屆",
+  "tabs": ["場均數據", "生涯累計", "鐵人榜", "奪冠榜"],
+  "avgStats": {
+    "podium": {
+      "label": "場均得分 TOP 3",
+      "unit": "PPG",
+      "top3": [
+        { "name": "黃偉訓", "team": "綠", "val": 9.55 },
+        { "name": "吳軒宇", "team": "紅", "val": 7.62 },
+        { "name": "吳家豪", "team": "綠", "val": 7.00 }
+      ]
+    },
+    "columns": ["#", "球員", "PPG", "RPG", "APG", "BPG", "SPG", "EFF"],
+    "players": [
+      { "name": "黃偉訓", "ppg": 9.55, "rpg": 3.1,  "apg": 0.6,  "bpg": 0.13, "spg": 0.85, "eff": 7.75 },
+      { "name": "吳軒宇", "ppg": 7.62, "rpg": 2.4,  "apg": 0.84, "bpg": 0.05, "spg": 0.60, "eff": 4.51 },
+      { "name": "吳家豪", "ppg": 7.00, "rpg": 3.48, "apg": 1.11, "bpg": 0.13, "spg": 0.81, "eff": 6.25 },
+      { "name": "藍提",   "ppg": 6.76, "rpg": 2.8,  "apg": 1.03, "bpg": 0.05, "spg": 0.79, "eff": 3.80 },
+      { "name": "陳彥汗", "ppg": 6.68, "rpg": 2.5,  "apg": 0.55, "bpg": 0.05, "spg": 0.72, "eff": 3.12 }
+    ]
+  },
+  "totalStats": {
+    "columns": ["#", "球員", "總得分", "總籃板", "總助攻", "總出賽"],
+    "players": [
+      { "name": "吳軒宇", "pts": 1418, "reb": 524,  "ast": 157, "games": 186 },
+      { "name": "陳曉川", "pts": 1313, "reb": 1273, "ast": 129, "games": 260 },
+      { "name": "吳家豪", "pts": 1232, "reb": 613,  "ast": 195, "games": 176 }
+    ]
+  },
+  "ironStats": {
+    "columns": ["#", "球員", "三鐵霸主", "2P鐵", "3P鐵", "FT鐵"],
+    "players": [
+      { "name": "陳曉川", "total": 1517, "p2": 772, "p3": 543, "ft": 202 },
+      { "name": "李世昌", "total": 1057, "p2": 658, "p3": 228, "ft": 171 },
+      { "name": "陳國弘", "total": 1041, "p2": 594, "p3": 217, "ft": 230 }
+    ]
+  },
+  "champStats": {
+    "status": "preparing",
+    "message": "奪冠榜資料整合中"
+  }
+}

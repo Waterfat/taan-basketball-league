@@ -1,0 +1,54 @@
+{
+  "season": 25,
+  "phase": "例行賽",
+  "currentWeek": 3,
+  "teams": [
+    {
+      "rank": 1, "name": "綠隊", "team": "綠",
+      "wins": 4, "losses": 2, "pct": "66.7%",
+      "history": ["L","W","W","L","W","W"],
+      "streak": "2連勝", "streakType": "win"
+    },
+    {
+      "rank": 2, "name": "紅隊", "team": "紅",
+      "wins": 4, "losses": 2, "pct": "66.7%",
+      "history": ["W","L","W","W","W","L"],
+      "streak": "1連敗", "streakType": "lose"
+    },
+    {
+      "rank": 3, "name": "黑隊", "team": "黑",
+      "wins": 3, "losses": 3, "pct": "50.0%",
+      "history": ["L","W","L","W","W","W"],
+      "streak": "2連勝", "streakType": "win"
+    },
+    {
+      "rank": 4, "name": "黃隊", "team": "黃",
+      "wins": 3, "losses": 3, "pct": "50.0%",
+      "history": ["W","W","L","L","L","W"],
+      "streak": "1連勝", "streakType": "win"
+    },
+    {
+      "rank": 5, "name": "白隊", "team": "白",
+      "wins": 3, "losses": 3, "pct": "50.0%",
+      "history": ["L","W","W","W","L","L"],
+      "streak": "2連敗", "streakType": "lose"
+    },
+    {
+      "rank": 6, "name": "藍隊", "team": "藍",
+      "wins": 1, "losses": 5, "pct": "16.7%",
+      "history": ["L","L","W","L","L","L"],
+      "streak": "3連敗", "streakType": "lose"
+    }
+  ],
+  "matrix": {
+    "teams": ["紅","黑","藍","綠","黃","白"],
+    "results": [
+      [null, 1, 1, -1, 1, -1],
+      [-1, null, 1, -1, 1, 1],
+      [-1, -1, null, -1, -1, -1],
+      [1, 1, 1, null, 1, 1],
+      [-1, -1, 1, -1, null, 1],
+      [1, -1, 1, -1, -1, null]
+    ]
+  }
+}

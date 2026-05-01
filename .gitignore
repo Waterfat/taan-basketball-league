@@ -1,0 +1,42 @@
+# Astro
+.astro/
+dist/
+node_modules/
+
+# Build output
+.output/
+.vercel/
+.netlify/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+.playwright-mcp/
+
+# Claude output
+.claude-output/
+
+# E2E auth state（含 session cookie，不可進 git）
+tests/e2e/.auth/

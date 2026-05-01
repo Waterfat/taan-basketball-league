@@ -1,0 +1,105 @@
+---
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import { SITE } from '../config/site';
+import { NAV_ITEMS } from '../config/nav';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 當前頁面 id（高亮 nav） */
+  active?: string;
+}
+
+const { title, description, active } = Astro.props;
+const pageTitle = title ? `${title}｜${SITE.shortName}` : SITE.name;
+const pageDesc = description ?? SITE.description;
+---
+
+<!doctype html>
+<html lang={SITE.locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={pageDesc} />
+    <link rel="icon" type="image/png" href={`${import.meta.env.BASE_URL}icons/icon-192.png`} />
+    <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.json`} />
+    <meta name="theme-color" content="#0f1b2d" />
+
+    <!-- 字型 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>{pageTitle}</title>
+    <ClientRouter />
+  </head>
+  <body class="min-h-screen bg-cream text-txt-dark">
+    <!-- 桌機 nav -->
+    <nav
+      class="sticky top-0 z-50 hidden md:flex items-center bg-navy h-[58px] px-6 shadow-md"
+      aria-label="主選單"
+    >
+      <a href={import.meta.env.BASE_URL} class="text-orange font-display text-[1.35rem] tracking-wider mr-6 whitespace-nowrap">
+        {SITE.shortName}
+      </a>
+      <ul class="flex flex-1 overflow-x-auto list-none gap-0">
+        {NAV_ITEMS.map((item) => (
+          <li>
+            <a
+              href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}${item.href}`}
+              class:list={[
+                'block px-4 leading-[58px] font-condensed text-sm font-bold tracking-wide whitespace-nowrap transition-colors border-b-[3px] border-transparent',
+                active === item.id
+                  ? 'text-orange border-orange'
+                  : 'text-white/50 hover:text-white/90',
+              ]}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <main class="pb-20 md:pb-0">
+      <slot />
+    </main>
+
+    <!-- 手機底部 nav -->
+    <nav
+      class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-navy h-15 border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,.3)] overflow-x-auto"
+      aria-label="主選單（手機）"
+    >
+      <div class="flex items-stretch h-full min-w-max px-1">
+        {NAV_ITEMS.map((item) => (
+          <a
+            href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}${item.href}`}
+            class:list={[
+              'flex flex-col items-center justify-center px-4 gap-0.5 font-condensed text-[0.65rem] font-extrabold tracking-wide transition-colors',
+              active === item.id ? 'text-orange' : 'text-white/60',
+            ]}
+          >
+            <span class="text-base" aria-hidden="true">{item.icon}</span>
+            <span>{item.label}</span>
+          </a>
+        ))}
+      </div>
+    </nav>
+
+    <script>
+      // PWA Service Worker 註冊
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          const swPath = `${import.meta.env.BASE_URL}sw.js`;
+          navigator.serviceWorker
+            .register(swPath)
+            .catch((err: unknown) => console.warn('[sw] register failed', err));
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "leaders": { "headers": [], "rows": [] },
+  "offense": { "headers": [], "rows": [] },
+  "defense": { "headers": [], "rows": [] },
+  "net":     { "headers": [], "rows": [] }
+}

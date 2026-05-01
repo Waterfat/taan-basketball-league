@@ -1,0 +1,67 @@
+# 測試規範
+
+## 測試框架
+
+| 用途 | 框架 | 目錄 |
+|------|------|------|
+| Unit | Vitest（jsdom） | `tests/unit/` |
+| E2E | Playwright | `tests/e2e/` |
+
+## 執行指令
+
+```bash
+# Unit
+npm test                  # 跑一次
+npm test -- --watch       # 監聽模式
+npm run test:unit:ui      # Vitest UI
+
+# E2E
+npx playwright test                       # 全部
+npx playwright test --project=regression  # 只跑回歸
+npx playwright test --ui                  # Playwright UI
+./scripts/e2e-test.sh                     # 完整流程（含 dev server）
+./scripts/e2e-test.sh https://prod.url    # 跑 prod
+```
+
+## 命名規則
+
+| 類型 | 命名 | 範例 |
+|------|------|------|
+| Unit | `*.test.ts` | `tests/unit/api.test.ts` |
+| E2E regression（無認證） | `*.regression.spec.ts` | `tests/e2e/home.regression.spec.ts` |
+| E2E features（互動） | `*.spec.ts` | `tests/e2e/standings-tab.spec.ts` |
+
+## E2E 三層覆蓋（必要）
+
+每個 scenario 必須包含：
+
+1. **UI 結構**：頁面載入、關鍵元素可見、導航正確
+2. **互動流程**：tab 切換、捲動、動畫過場、行動裝置 menu
+3. **資料驗證**：實際 fetch Google Sheets API（或 mock JSON），驗證不出 500、loading/error/empty 狀態正常切換
+
+## 目錄結構
+
+```
+tests/
+├── unit/                   # Vitest unit tests
+│   ├── api.test.ts
+│   └── teams-config.test.ts
+├── e2e/
+│   ├── regression/         # 純展示頁 smoke
+│   ├── features/           # 互動元件
+│   ├── helpers/            # 共用工具（fixtures, mocks）
+│   └── .auth/              # storageState（不進 git，保留給未來）
+└── environments.yml        # 環境清單
+```
+
+## Mock 策略
+
+- **Unit**：Google Sheets API 一律 mock（用 MSW / vitest-fetch-mock）
+- **E2E regression**：mock 失敗時 fallback 到 `public/data/*.json`，確保站台仍可渲染
+- **E2E features**：可用 `page.route('**/exec*', ...)` 攔截 GAS 回應
+
+## 部署後驗收
+
+1. push main → GitHub Actions 自動跑 lint + unit + e2e（regression project）
+2. Build pass → 部署 gh-pages
+3. 部署完成 → 手動或排程跑 `./scripts/e2e-test.sh https://waterfat.github.io/taan-basketball-league/`
