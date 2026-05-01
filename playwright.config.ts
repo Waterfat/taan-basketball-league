@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4321/taan-basketball-league';
+// baseURL 結尾必須有 /，否則 page.goto('/path') 的 leading 斜線會覆蓋 path component（→ 404）
+const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4321/taan-basketball-league/';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -31,6 +32,12 @@ export default defineConfig({
       testMatch: /.*\.spec\.ts/,
       testIgnore: /.*\.regression\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'features-mobile',
+      testMatch: /.*\.spec\.ts/,
+      testIgnore: /.*\.regression\.spec\.ts/,
+      use: { ...devices['Pixel 7'] }, // 手機 viewport 測 RWD
     },
   ],
   webServer: {

@@ -22,7 +22,8 @@ export type DataKind =
   | 'hof';
 
 const GAS_URL = import.meta.env.PUBLIC_GAS_WEBAPP_URL;
-const STATIC_BASE = import.meta.env.BASE_URL ?? '/';
+const RAW_BASE = import.meta.env.BASE_URL ?? '/';
+const STATIC_BASE = RAW_BASE.replace(/\/$/, ''); // 去掉尾斜線，串接時統一補
 
 interface FetchResult<T> {
   data: T | null;
@@ -50,7 +51,7 @@ export async function fetchData<T = unknown>(kind: DataKind): Promise<FetchResul
 
   // Fallback 到靜態 JSON
   try {
-    const url = `${STATIC_BASE}data/${kind}.json`.replace(/\/+/g, '/');
+    const url = `${STATIC_BASE}/data/${kind}.json`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as T;

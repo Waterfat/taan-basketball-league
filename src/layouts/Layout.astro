@@ -14,6 +14,7 @@ interface Props {
 const { title, description, active } = Astro.props;
 const pageTitle = title ? `${title}｜${SITE.shortName}` : SITE.name;
 const pageDesc = description ?? SITE.description;
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <!doctype html>
@@ -22,8 +23,8 @@ const pageDesc = description ?? SITE.description;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={pageDesc} />
-    <link rel="icon" type="image/png" href={`${import.meta.env.BASE_URL}icons/icon-192.png`} />
-    <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.json`} />
+    <link rel="icon" type="image/png" href={`${BASE}/icons/icon-192.png`} />
+    <link rel="manifest" href={`${BASE}/manifest.json`} />
     <meta name="theme-color" content="#0f1b2d" />
 
     <!-- 字型 -->
@@ -43,14 +44,14 @@ const pageDesc = description ?? SITE.description;
       class="sticky top-0 z-50 hidden md:flex items-center bg-navy h-[58px] px-6 shadow-md"
       aria-label="主選單"
     >
-      <a href={import.meta.env.BASE_URL} class="text-orange font-display text-[1.35rem] tracking-wider mr-6 whitespace-nowrap">
+      <a href={`${BASE}/`} class="text-orange font-display text-[1.35rem] tracking-wider mr-6 whitespace-nowrap">
         {SITE.shortName}
       </a>
       <ul class="flex flex-1 overflow-x-auto list-none gap-0">
         {NAV_ITEMS.map((item) => (
           <li>
             <a
-              href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}${item.href}`}
+              href={`${BASE}${item.href}`}
               class:list={[
                 'block px-4 leading-[58px] font-condensed text-sm font-bold tracking-wide whitespace-nowrap transition-colors border-b-[3px] border-transparent',
                 active === item.id
@@ -77,7 +78,7 @@ const pageDesc = description ?? SITE.description;
       <div class="flex items-stretch h-full min-w-max px-1">
         {NAV_ITEMS.map((item) => (
           <a
-            href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}${item.href}`}
+            href={`${BASE}${item.href}`}
             class:list={[
               'flex flex-col items-center justify-center px-4 gap-0.5 font-condensed text-[0.65rem] font-extrabold tracking-wide transition-colors',
               active === item.id ? 'text-orange' : 'text-white/60',
@@ -94,7 +95,7 @@ const pageDesc = description ?? SITE.description;
       // PWA Service Worker 註冊
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          const swPath = `${import.meta.env.BASE_URL}sw.js`;
+          const swPath = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/sw.js`;
           navigator.serviceWorker
             .register(swPath)
             .catch((err: unknown) => console.warn('[sw] register failed', err));
