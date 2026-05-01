@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4321';
+const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4321/taan-basketball-league';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -24,7 +24,7 @@ export default defineConfig({
     {
       name: 'regression-mobile',
       testMatch: /.*\.regression\.spec\.ts/,
-      use: { ...devices['iPhone 14'] },
+      use: { ...devices['Pixel 7'] }, // Chromium-based 手機 profile（避免 webkit 依賴）
     },
     {
       name: 'features',
@@ -33,12 +33,10 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: process.env.CI
-    ? undefined
-    : {
-        command: 'npm run dev',
-        url: BASE_URL,
-        reuseExistingServer: true,
-        timeout: 120_000,
-      },
+  webServer: {
+    command: 'npm run dev',
+    url: BASE_URL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
 });
