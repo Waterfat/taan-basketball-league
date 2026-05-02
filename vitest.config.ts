@@ -12,4 +12,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
   },
+  define: {
+    'import.meta.env.PUBLIC_SHEET_ID': JSON.stringify('test-sheet-id'),
+    'import.meta.env.PUBLIC_SHEETS_API_KEY': JSON.stringify('test-api-key'),
+  },
 });
