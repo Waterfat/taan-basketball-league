@@ -58,4 +58,15 @@
 
 ## Phase 5 部署記錄
 
+**環境**：Production（GitHub Pages）
+**部署時間**：2026-05-03 02:21 TST
+**PR**：#11（feat/5-roster → main）
+
+| 步驟 | 結果 |
+|------|------|
+| env 同步 | ✅ 跳過（PUBLIC_GAS_WEBAPP_URL 已在 workflow）|
+| deploy（push main → GH Actions）| ✅ completed / success |
+| /roster/ HTTP | ✅ 200 OK |
+| ops-health | ✅ monitoring=false，URL 確認可訪問 |
+
 ## Phase 6 E2E 驗收
