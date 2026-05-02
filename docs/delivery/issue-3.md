@@ -83,17 +83,27 @@ Issue #1 同樣 17 個函式 / 元件混合 unit + E2E 覆蓋，當時 code-grap
 - 6 個 integration test（兩層 fallback × 兩個 kind）
 - 17 個 E2E spec（已寫，待 Phase 6 UAT 跑）
 
-**請主人決策後再進入 Phase 4。**
+**主人決策**：Option A — 視為工具誤判，繼續 Phase 4。
 
 ## Phase 4 — 程式碼交付
 
-- [ ] 4.1 commit + push
-- [ ] 4.2 PR 建立
-- [ ] 4.3 merge to main
+- [x] 4.1 commit + push（feat/3-standings-page）
+- [x] 4.2 PR #7 建立（含完整 phase coverage）
+- [x] 4.3 rebase merge to main，本地 main 已同步（HEAD = `3e368a3`）
 
 ## Phase 5 — 部署記錄
 
-（待執行）
+**環境**：Production（GitHub Pages）
+**部署時間**：2026-05-03 00:08 TST
+
+| 步驟 | 結果 |
+|------|------|
+| env 同步 | ✅ 跳過（Issue #3 無 env 變更）|
+| merge / deploy | ✅ commit `3e368a3` push main → GitHub Actions Run `25256040945`（lint → unit → e2e regression × 2 → build → deploy gh-pages） |
+| ops-health | ✅ 跳過（deploy-config.yml monitoring=false，純靜態站）|
+
+**Prod URL**：https://waterfat.github.io/taan-basketball-league/standings
+**驗證**：HTTP 200（10418 bytes），HTML 含 `astro-island` + `StandingsApp` + `skeleton-hero` + `戰績` markers
 
 ## Phase 6 — E2E 驗收
 
