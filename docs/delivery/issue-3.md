@@ -107,4 +107,26 @@ Issue #1 同樣 17 個函式 / 元件混合 unit + E2E 覆蓋，當時 code-grap
 
 ## Phase 6 — E2E 驗收
 
-（待執行）
+**整體結果**：✅
+
+### P0 Regression（schedule.regression.spec.ts）
+- 對 prod URL `https://waterfat.github.io/taan-basketball-league/`
+- 2/2 passed（features × desktop + features × mobile）
+
+### Features Standings（standings.spec.ts × features + features-mobile）
+- 對 prod URL，採 `mockStandingsAPI` 攔截 GAS+JSON
+- 17 個 case × 2 projects = 34 跑次：**30 passed + 2 skipped**（2 個 RWD-only 案例由 project filter 跳過 mobile 不適 / desktop 不適）
+
+### Retry r1（spec selector 調整，非實作 bug）
+首跑時 18 failed，根因 = Tailwind `hidden md:block` 是 `display:none` 不從 DOM 移除，原 selector `[data-testid="standings-row"]` 在兩個 section 各取 6 個 → 共 12 元素。修復：
+1. AC-1~5, 9, 10, 14：改用 `[data-testid="standings-row"]:visible` 過濾顯示中的 row
+2. AC-6：URL 正則放寬 `/roster\/?\?team=green/`，允許 GitHub Pages 加的 trailing slash
+3. AC-7：Playwright `:visible` 不會傳遞到 descendant CSS selector → 改用 `page.evaluate` 透過 `getBoundingClientRect` 過濾，並先 wait 6 列出現
+
+修正後第二跑全綠（commit `dcf2254`）。**屬於測試 spec bug，非 prod 程式碼缺陷，不需重新部署**。
+
+### Regression promotion 評估
+- 跨 Issue 仍會被踩到的行為（資料 fallback、5-tab nav）：✅
+- 過去 5 個 Issue 內失敗紀錄：無（首次新增）
+- 失敗影響範圍：單一頁面，未跨 portal
+- 結論：暫不升級為 regression（標準的「3 答均 yes」未滿足）
