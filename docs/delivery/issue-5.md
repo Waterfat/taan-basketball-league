@@ -10,6 +10,26 @@
 - [x] 0.2 git-ops-v2 create-worktree feat/5-roster
 - [x] 0.3 TaskCreate Phase Tasks
 
+## Metrics
+
+```yaml
+issue: 5
+completed_at: 2026-05-03T02:56:08+08:00
+duration_estimate: 1h 5m
+issue_type: feature
+phase1_retries: 0
+phase2_retries: 0
+blocked_count: 0
+phase3_retries: 2
+phase4_conflicts: 0
+phase5_retries: 0
+phase5_env_issues: 0
+phase6_retries: 0
+phase6_unrelated_failures: 0
+anomalous_dispatches: []
+smoothness: 1
+```
+
 ## Phase 1 規劃
 - [ ] 1.1 qa-v2 plan #5（含 fixture inventory）
 - [ ] 1.2 qa-v2 寫 E2E + integration test
