@@ -12,7 +12,40 @@
 - [ ] Phase 3：整合測試
 - [ ] Phase 4：程式碼交付
 - [x] Phase 5：部署
-- [ ] Phase 6：驗收
+- [x] Phase 6：驗收
+
+## Phase 6 E2E 驗收
+
+**環境**：Production（https://waterfat.github.io/taan-basketball-league/）
+**執行時間**：2026-05-03 TST
+**整體結果**：✅ 全通過
+
+| # | 案例集 | 結果 | 備註 |
+|---|--------|------|------|
+| 1 | regression（boxscore + schedule × desktop + mobile）| ✅ 12/12 | 全綠 |
+| 2 | features/boxscore/（9 spec 檔 × 2 project）| ✅ 62/62（2 skip）| RWD project 互斥 skip |
+
+注意：首次對 localhost 跑出現 4 fail（dev server 未啟動），切換 BASE_URL 到 prod 後全過。
+
+## Metrics
+
+```yaml
+issue: 9
+completed_at: 2026-05-03T01:45:26+08:00
+duration_estimate: 0h 34m
+issue_type: refactor
+phase1_retries: 0
+phase2_retries: 0
+blocked_count: 0
+phase3_retries: 1
+phase4_conflicts: 0
+phase5_retries: 0
+phase5_env_issues: 0
+phase6_retries: 0
+phase6_unrelated_failures: 0
+anomalous_dispatches: []
+smoothness: 2
+```
 
 ## Phase 5 部署記錄
 
