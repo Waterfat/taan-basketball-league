@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PUBLIC_GAS_WEBAPP_URL: ${{ vars.PUBLIC_GAS_WEBAPP_URL }}
+      PUBLIC_SHEET_ID: ${{ vars.PUBLIC_SHEET_ID }}
+      PUBLIC_SHEETS_API_KEY: ${{ vars.PUBLIC_SHEETS_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
