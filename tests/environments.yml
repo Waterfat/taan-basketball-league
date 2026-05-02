@@ -35,10 +35,10 @@ env_vars:
       acc_pw_section: taan-basketball-league
       ci: gh variable (vars)
     inject_at:
-      dev: .env.local
-      test: vitest.config.ts define（vi.stubEnv 替代）
+      dev: .env.local（可留空，api.ts 偵測 placeholder 後自動 fallback JSON）
+      test: vi.stubEnv('PUBLIC_GAS_WEBAPP_URL', ...) 於各 integration test beforeEach
       build: .github/workflows/*.yml build job env
-    required_for: [dev, build, deploy]
+    required_for: [build, deploy]
 
 # 測試覆蓋目標
 coverage:
