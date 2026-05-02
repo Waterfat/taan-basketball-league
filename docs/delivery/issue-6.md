@@ -43,13 +43,20 @@
 
 ## Phase 4 程式碼交付
 
-- [ ] 4.1 commit + push feature branch
-- [ ] 4.2 建 PR
-- [ ] 4.3 merge to main
+- [x] 4.1 commit + push feat/6-home-dashboard（138/138 pass）
+- [x] 4.2 建 PR #12
+- [x] 4.3 merge to main（`ca482dc`）
 
 ## Phase 5 部署記錄
 
-<!-- 結果寫入此處 -->
+**環境**：Production（GitHub Pages）
+**部署時間**：2026-05-03 TST
+
+| 步驟 | 結果 |
+|------|------|
+| env 同步 | ✅ 跳過（PUBLIC_GAS_WEBAPP_URL 已在 workflow，無 pending）|
+| CI / deploy | ✅ `ca482dc`（Deploy to GitHub Pages: completed success）|
+| 站台健康 | ✅ HTTP 200 |
 
 ## Phase 6 E2E 驗收
 
