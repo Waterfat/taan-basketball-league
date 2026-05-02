@@ -93,14 +93,41 @@
 
 ## Phase 4 — 程式碼交付
 
-- [ ] 4.1 commit + push feat branch
-- [ ] 4.2 開 PR
-- [ ] 4.3 merge to main + 同步本地
+- [x] 4.1 commit + push feat/4-boxscore-page（12 commits ahead of main，已 rebase）
+- [x] 4.2 PR #8 建立 + body 含完整 phase coverage
+- [x] 4.3 rebase merge to main，本地 main 已同步（HEAD = `f109c04`）
 
-## Phase 5 — 部署記錄
+## Phase 5 部署記錄
 
-（待 Phase 4 完成）
+**環境**：GitHub Pages production（無獨立 UAT）→ https://waterfat.github.io/taan-basketball-league/
+**部署方式**：push main → GitHub Actions（lint → unit → e2e regression → build → deploy）
+
+| 步驟 | 結果 |
+|------|------|
+| Run #25256386167（PR #8 merge，commit f109c04）| ❌ E2E regression 失敗（element not found + URL mismatch）|
+| Hotfix #1（commit 170bf5c）：補 deploy.yml 注入 `PUBLIC_SHEET_ID` + `PUBLIC_SHEETS_API_KEY` | ✅ workflow 修復 |
+| Run #25256597631（hotfix #1）| ❌ E2E regression 仍 fail（hydration 競態）|
+| Hotfix #2（commit 6038007）：spec 加 hydration wait | ❌ R-2 仍 fail（leaders URL 預期錯誤 + hydration race）|
+| Hotfix #3（commit 79f4830）：toPass retry click + 修 leaders URL 斷言（leaders 設計為不帶 query）| ❌ console error filter 漏（Vite 504 Outdated Optimize Dep 噪音）|
+| Hotfix #4（commit f51ef5c）：filter Vite dev-server console noise | ✅ Run #25256810699 build + deploy 全 PASS |
+
+**最終狀態**：✅ 成功
+- Prod URL: https://waterfat.github.io/taan-basketball-league/boxscore （HTTP 200）
+- `astro-island` + `hero-title` + `sub-tab` testid 出現在 HTML
+- Phase 6 E2E 預期可直接跑
+
+### 設定缺口（plan 未涵蓋，retro 點）
+
+Plan Task 8 只改 `.env.example`，漏 4 件事：
+1. GitHub Actions vars 未設定 `PUBLIC_SHEET_ID` + `PUBLIC_SHEETS_API_KEY`（hotfix #1 用 `gh variable set` 補）
+2. `.github/workflows/deploy.yml` build job env 未注入這兩個變數（hotfix #1 補）
+3. E2E regression spec 對 `client:load` island 沒 wait hydration（hotfix #2/#3 用 `toPass` retry click 解決）
+4. R-2 console assertion 沒 filter Vite dev-only 噪音（hotfix #4 補）
+
+修復後續：
+- 帳密寫入 `~/Documents/acc_pw.txt` + Notion 同步（透過 acc-pw skill）
+- 使用者明示「下次規劃要把這類部署 prereq 一起準備好」 → Phase 6.5 evolve-v2 instinct 候選
 
 ## Phase 6 — E2E 驗收
 
-（待 Phase 5 完成）
+（執行中）
