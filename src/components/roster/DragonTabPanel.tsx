@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { DragonData, DragonPlayer } from '../../types/roster';
 import { isAboveThreshold, formatPlayoff } from '../../lib/roster-utils';
 import { TEAM_CONFIG } from '../../config/teams';
@@ -124,30 +125,29 @@ export function DragonTabPanel({ data }: Props) {
           </thead>
           <tbody>
             {players.map((player, idx) => (
-              <>
+              <Fragment key={player.rank}>
                 {idx === dividerIdx && dividerIdx > 0 && (
-                  <CivilianDividerRow key="divider" threshold={civilianThreshold} colSpan={COL_SPAN} />
+                  <CivilianDividerRow threshold={civilianThreshold} colSpan={COL_SPAN} />
                 )}
-                <DragonTableRow key={player.rank} player={player} threshold={civilianThreshold} />
-              </>
+                <DragonTableRow player={player} threshold={civilianThreshold} />
+              </Fragment>
             ))}
           </tbody>
         </table>
       </div>
       <div className="md:hidden space-y-2">
         {players.map((player, idx) => (
-          <>
+          <Fragment key={player.rank}>
             {idx === dividerIdx && dividerIdx > 0 && (
               <div
-                key="divider"
                 data-testid="civilian-divider"
                 className="text-center text-xs text-txt-mid py-1 border-y border-dashed border-warm-2"
               >
                 ── 平民線（{civilianThreshold} 分）──
               </div>
             )}
-            <DragonCard key={player.rank} player={player} threshold={civilianThreshold} />
-          </>
+            <DragonCard player={player} threshold={civilianThreshold} />
+          </Fragment>
         ))}
       </div>
     </div>

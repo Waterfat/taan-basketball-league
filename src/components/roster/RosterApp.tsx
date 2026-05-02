@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RosterData, DragonData, RosterTab } from '../../types/roster';
 import { fetchData } from '../../lib/api';
 import { parseRosterQuery, resolveRosterTab } from '../../lib/roster-utils';
@@ -39,6 +39,8 @@ export function RosterApp({ baseUrl }: Props) {
   const [dragonData, setDragonData] = useState<DragonData | null>(null);
   const [status, setStatus] = useState<Status>('loading');
   const [reloadKey, setReloadKey] = useState(0);
+  // deep link tab switch 只在首次載入完成後執行一次
+  const deepLinkApplied = useRef(false);
 
   useEffect(() => {
     const handler = () => {
@@ -80,7 +82,8 @@ export function RosterApp({ baseUrl }: Props) {
   }, [reloadKey]);
 
   useEffect(() => {
-    if (highlightTeam && status === 'ok') {
+    if (highlightTeam && status === 'ok' && !deepLinkApplied.current) {
+      deepLinkApplied.current = true;
       setActiveTab('roster');
     }
   }, [highlightTeam, status]);
