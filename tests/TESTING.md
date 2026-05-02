@@ -68,6 +68,19 @@ tests/
 - **E2E regression**：mock 失敗時 fallback 到 `public/data/*.json`，確保站台仍可渲染
 - **E2E features**：可用 `page.route('**/exec*', ...)` 攔截 GAS 回應
 
+## code-review-graph test_gaps 排除規則
+
+qa-v2 Phase 3 跑 `detect_changes_tool` 時，以下三類函式的 gap **直接 override，不觸發 Phase 2 retry**：
+
+| 類型 | 判斷條件 | 原因 |
+|------|---------|------|
+| T1：已有 unit test | gap 函式名 grep `tests/unit/` 找得到 | tree-sitter 無法追蹤 TS named import call edge |
+| T2：測試基礎設施 | gap 函式所在檔案路徑在 `tests/` 底下 | test helper / fixture / mock，本不需測試 |
+| T3：React 內部子元件 | gap 函式在 `src/components/` 且在該檔案內**無 export** | JSX `<Component />` 不被識別為 function call，但已由父元件測試或 E2E 覆蓋 |
+
+命中任一類型 → Phase 3 section 記「override（T1/T2/T3）+ 證據」，結果寫 ✅。
+三類均未命中 → 視為真實缺口，退回 Phase 2 補測試。
+
 ## 部署後驗收
 
 1. push main → GitHub Actions 自動跑 lint + unit + e2e（regression project）
