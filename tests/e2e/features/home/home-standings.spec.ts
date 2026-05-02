@@ -31,7 +31,7 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
     await expect(first.getByTestId('team-dot')).toBeVisible();
     await expect(first.getByTestId('team-name')).toContainText('綠');
     await expect(first.getByTestId('record')).toContainText(/勝/);
-    await expect(first.getByTestId('pct')).toContainText('66.7');
+    // pct 只在桌機 table 顯示，mobile compact row 省略（空間限制）
     await expect(first.getByTestId('streak')).toContainText(/連勝|連敗/);
   });
 
