@@ -23,6 +23,7 @@
 - `/review` 重構完 → 補齊測試覆蓋
 - **部署後必須跑 `./scripts/e2e-test.sh https://waterfat.github.io/taan-basketball-league/` 驗收**
 - 改動 `gas/Code.gs` → 需手動重新部署 Apps Script webapp（Code.gs 不在 Astro build 範圍）
+- 新增 E2E `.spec.ts` 或 `tests/helpers/mock-api/` 子模組時 → 最上方必須加 `/** docstring */` 標明涵蓋 AC 編號；寫新 testcase 先 grep 對應 `features/{頁}/` 下各 spec docstring 判斷歸屬
 
 ## 資料夾規範
 
