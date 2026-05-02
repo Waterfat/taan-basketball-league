@@ -1,36 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { NAV_ITEMS } from '../config/nav';
+import { HomeDashboard } from '../components/home/HomeDashboard';
 
-const ENABLED_PAGES = NAV_ITEMS.filter((item) => item.id !== 'home');
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <Layout title="首頁" active="home">
-  <section class="px-4 md:px-8 py-8 md:py-12 max-w-6xl mx-auto">
-    <header class="text-center mb-10 md:mb-14">
-      <h1 class="font-hero text-4xl md:text-6xl text-orange tracking-wider mb-3">
-        TAAN BASKETBALL
-      </h1>
-      <p class="font-display text-xl md:text-2xl text-navy tracking-wide">
-        大安ㄍㄤㄍㄤ好籃球聯盟
-      </p>
-      <p class="text-txt-mid text-sm md:text-base mt-3">
-        賽程・戰績・球員・龍虎榜・即時統計
-      </p>
-    </header>
-
-    <nav aria-label="頁面導覽" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-      {ENABLED_PAGES.map((item) => (
-        <a
-          href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}${item.href}`}
-          class="bg-white border border-warm-2 rounded-2xl p-5 md:p-6 flex flex-col items-center gap-2 transition-all hover:border-orange hover:shadow-lg hover:-translate-y-0.5"
-        >
-          <span class="text-3xl md:text-4xl" aria-hidden="true">{item.icon}</span>
-          <span class="font-condensed font-bold text-base md:text-lg text-navy tracking-wide">
-            {item.label}
-          </span>
-        </a>
-      ))}
-    </nav>
-  </section>
+  <HomeDashboard client:visible baseUrl={baseUrl} />
 </Layout>
