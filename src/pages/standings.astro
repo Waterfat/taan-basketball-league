@@ -1,14 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { StandingsApp } from '../components/standings/StandingsApp';
+
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <Layout title="戰績榜" active="standings">
-  <section class="px-4 md:px-8 py-8 max-w-6xl mx-auto">
-    <h1 class="font-display text-3xl md:text-5xl text-navy tracking-wider mb-2">戰績</h1>
-    <p class="text-txt-mid mb-8">六隊本季戰績、勝率、淨勝分</p>
-
-    <div class="bg-white border border-warm-2 rounded-2xl p-8 text-center">
-      <p class="font-condensed text-2xl text-orange mb-2">規劃中</p>
-    </div>
-  </section>
+  <StandingsApp client:load baseUrl={baseUrl} />
 </Layout>
