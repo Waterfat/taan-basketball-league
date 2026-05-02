@@ -36,9 +36,14 @@ test.describe('Boxscore Regression @boxscore-regression', () => {
 
   test('R-2: 切換 tab + 切回 → URL 同步、面板正確切換，不出 console error', async ({ page }) => {
     const errors: string[] = [];
-    page.on('pageerror', (e) => errors.push(e.message));
+    // 忽略 Vite dev server 噪音：Outdated Optimize Dep（prod build 不會有）
+    const ignorePatterns = [/Outdated Optimize Dep/i, /504.*Outdated/i];
+    const shouldIgnore = (msg: string) => ignorePatterns.some((p) => p.test(msg));
+    page.on('pageerror', (e) => {
+      if (!shouldIgnore(e.message)) errors.push(e.message);
+    });
     page.on('console', (m) => {
-      if (m.type() === 'error') errors.push(m.text());
+      if (m.type() === 'error' && !shouldIgnore(m.text())) errors.push(m.text());
     });
 
     await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockFullLeaders() });
