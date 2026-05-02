@@ -75,7 +75,8 @@ test.describe('Roster Page — 龍虎榜 tab @roster @dragon', () => {
     await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockDragonboardWithThreshold() });
     await page.goto('roster?tab=dragon');
 
-    const divider = page.locator('[data-testid="civilian-divider"]');
+    // 桌機 <tr> + 手機 <div> 各一，取第一個即可
+    const divider = page.locator('[data-testid="civilian-divider"]').first();
     await expect(divider).toBeVisible();
     await expect(divider).toContainText('平民線');
   });
