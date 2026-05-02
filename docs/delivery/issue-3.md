@@ -130,3 +130,23 @@ Issue #1 同樣 17 個函式 / 元件混合 unit + E2E 覆蓋，當時 code-grap
 - 過去 5 個 Issue 內失敗紀錄：無（首次新增）
 - 失敗影響範圍：單一頁面，未跨 portal
 - 結論：暫不升級為 regression（標準的「3 答均 yes」未滿足）
+
+## Metrics
+
+```yaml
+issue: 3
+completed_at: 2026-05-03T00:15:05+08:00
+duration_estimate: 0h 32m
+issue_type: feature
+phase1_retries: 0
+phase2_retries: 0
+blocked_count: 0
+phase3_retries: 2
+phase4_conflicts: 0
+phase5_retries: 0
+phase5_env_issues: 0
+phase6_retries: 1
+phase6_unrelated_failures: 0
+anomalous_dispatches: []
+smoothness: 1
+```
