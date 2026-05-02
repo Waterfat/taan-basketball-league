@@ -8,11 +8,17 @@
  *   await mockScheduleAPI(page, schedule, { delayMs: 2000 }); // 延遲 2 秒模擬載入
  *
  *   await mockStandingsAPI(page, mockFullStandings());        // 戰績榜
+ *
+ *   await mockBoxscoreSheetsAPI(page, [game1, ...]);          // boxscore 直打 Sheets API
+ *   await mockLeadersAPI(page, mockFullLeaders());            // 領先榜（GAS handleStats）
  */
 
 import type { Page, Route } from '@playwright/test';
 import type { ScheduleData } from '../fixtures/schedule';
 import type { StandingsData } from '../fixtures/standings';
+import type { BoxscoreGame, BoxscoreData } from '../fixtures/boxscore';
+import { mockRawBoxscoreSheetsResponse } from '../fixtures/boxscore';
+import type { LeaderData } from '../fixtures/leaders';
 
 interface MockOptions<T> {
   /** GAS 是否失敗（true 時會 fallback 到 JSON） */
@@ -26,6 +32,8 @@ interface MockOptions<T> {
 }
 
 const GAS_PATTERN = /script\.google\.com\/macros\/s\/.+\/exec/;
+const SHEETS_PATTERN = /sheets\.googleapis\.com\/v4\/spreadsheets\/.+\/values\/.+/;
+const LEADERS_JSON_PATTERN = /\/data\/(leaders|stats)\.json$/;
 
 async function mockKindAPI<T>(
   page: Page,
@@ -86,3 +94,118 @@ export async function mockStandingsAPI(
 ): Promise<void> {
   return mockKindAPI<StandingsData>(page, /\/data\/standings\.json$/, standings, opts);
 }
+
+/**
+ * 攔截 Google Sheets API 直打請求（boxscore tab）
+ *
+ * 使用方式：
+ *   await mockBoxscoreSheetsAPI(page, [game1, game2, ...]);            // 成功
+ *   await mockBoxscoreSheetsAPI(page, [], { sheetsFails: true });      // Sheets 失敗
+ *   await mockBoxscoreSheetsAPI(page, games, { delayMs: 1500 });       // 慢速網路
+ */
+interface BoxscoreMockOptions {
+  /** Sheets API 是否失敗 */
+  sheetsFails?: boolean;
+  /** 延遲毫秒數 */
+  delayMs?: number;
+}
+
+export async function mockBoxscoreSheetsAPI(
+  page: Page,
+  games: BoxscoreGame[],
+  opts: BoxscoreMockOptions = {},
+): Promise<void> {
+  const { sheetsFails = false, delayMs = 0 } = opts;
+
+  await page.route(SHEETS_PATTERN, async (route: Route) => {
+    if (delayMs) await new Promise((r) => setTimeout(r, delayMs));
+    if (sheetsFails) {
+      await route.fulfill({ status: 500, body: 'Sheets API error' });
+      return;
+    }
+    const body = mockRawBoxscoreSheetsResponse(games);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(body),
+    });
+  });
+}
+
+/**
+ * 攔截 GAS handleStats endpoint（leaders）
+ *
+ * 使用方式：
+ *   await mockLeadersAPI(page, mockFullLeaders());
+ *   await mockLeadersAPI(page, null, { allFail: true });
+ *   await mockLeadersAPI(page, leaders, { delayMs: 1500 });
+ */
+interface LeadersMockOptions {
+  /** GAS stats endpoint 是否失敗（true → fallback 到 JSON） */
+  gasFails?: boolean;
+  /** GAS + JSON fallback 都失敗 */
+  allFail?: boolean;
+  /** 延遲毫秒數 */
+  delayMs?: number;
+}
+
+export async function mockLeadersAPI(
+  page: Page,
+  leaders: LeaderData | null,
+  opts: LeadersMockOptions = {},
+): Promise<void> {
+  const { gasFails = false, allFail = false, delayMs = 0 } = opts;
+
+  // GAS 攔截（type=stats）
+  await page.route(/script\.google\.com\/macros\/s\/.+\/exec\?type=stats/, async (route: Route) => {
+    if (delayMs) await new Promise((r) => setTimeout(r, delayMs));
+    if (allFail || gasFails) {
+      await route.fulfill({ status: 500, body: 'GAS stats error' });
+      return;
+    }
+    if (leaders) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(leaders),
+      });
+      return;
+    }
+    await route.fulfill({ status: 500, body: 'No leaders data' });
+  });
+
+  // JSON fallback 攔截
+  await page.route(LEADERS_JSON_PATTERN, async (route: Route) => {
+    if (delayMs) await new Promise((r) => setTimeout(r, delayMs));
+    if (allFail) {
+      await route.fulfill({ status: 500, body: 'JSON fallback failed' });
+      return;
+    }
+    if (leaders) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(leaders),
+      });
+      return;
+    }
+    await route.continue();
+  });
+}
+
+/** 同時 mock boxscore + leaders（單頁 e2e 常用組合） */
+export async function mockBoxscoreAndLeaders(
+  page: Page,
+  opts: {
+    boxscore?: BoxscoreGame[];
+    leaders?: LeaderData | null;
+    boxOpts?: BoxscoreMockOptions;
+    leadersOpts?: LeadersMockOptions;
+  } = {},
+): Promise<void> {
+  await mockBoxscoreSheetsAPI(page, opts.boxscore ?? [], opts.boxOpts);
+  await mockLeadersAPI(page, opts.leaders ?? null, opts.leadersOpts);
+}
+
+// re-export type for fixture consumers
+export type { BoxscoreData, LeaderData };
