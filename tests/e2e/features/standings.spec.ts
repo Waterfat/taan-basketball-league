@@ -32,7 +32,7 @@ test.describe('Standings Page @standings', () => {
     await expect(page.getByText(/第\s*5\s*週/)).toBeVisible();
 
     // 6 隊
-    const rows = page.locator('[data-testid="standings-row"]');
+    const rows = page.locator('[data-testid="standings-row"]:visible');
     await expect(rows).toHaveCount(6);
   });
 
@@ -41,7 +41,7 @@ test.describe('Standings Page @standings', () => {
     await mockStandingsAPI(page, mockFullStandings());
     await page.goto('standings');
 
-    const firstRow = page.locator('[data-testid="standings-row"]').first();
+    const firstRow = page.locator('[data-testid="standings-row"]:visible').first();
 
     await expect(firstRow.locator('[data-testid="rank"]')).toContainText('1');
     await expect(firstRow.locator('[data-testid="team-dot"]')).toBeVisible();
@@ -60,7 +60,7 @@ test.describe('Standings Page @standings', () => {
 
     // 綠隊（rank 1）連勝
     const greenStreak = page
-      .locator('[data-testid="standings-row"]')
+      .locator('[data-testid="standings-row"]:visible')
       .filter({ has: page.locator('[data-testid="team-name"]', { hasText: '綠' }) })
       .locator('[data-testid="streak"]');
 
@@ -78,7 +78,7 @@ test.describe('Standings Page @standings', () => {
 
     // 紅隊（rank 2）連敗
     const redStreak = page
-      .locator('[data-testid="standings-row"]')
+      .locator('[data-testid="standings-row"]:visible')
       .filter({ has: page.locator('[data-testid="team-name"]', { hasText: '紅' }) })
       .locator('[data-testid="streak"]');
 
@@ -93,7 +93,7 @@ test.describe('Standings Page @standings', () => {
 
     // 綠隊 history: ['L','W','W','L','W','W']
     const greenRow = page
-      .locator('[data-testid="standings-row"]')
+      .locator('[data-testid="standings-row"]:visible')
       .filter({ has: page.locator('[data-testid="team-name"]', { hasText: '綠' }) });
 
     const dots = greenRow.locator('[data-testid="history-dot"]');
@@ -110,11 +110,12 @@ test.describe('Standings Page @standings', () => {
     await page.goto('standings');
 
     const greenRow = page
-      .locator('[data-testid="standings-row"]')
+      .locator('[data-testid="standings-row"]:visible')
       .filter({ has: page.locator('[data-testid="team-name"]', { hasText: '綠' }) });
 
     await greenRow.click();
-    await expect(page).toHaveURL(/\/roster\?team=green/);
+    // GitHub Pages 會加 trailing slash → /roster/?team=green；本地 dev 為 /roster?team=green
+    await expect(page).toHaveURL(/\/roster\/?\?team=green/);
   });
 
   // ────── AC-7: rank 順序與輸入完全一致 ──────
@@ -122,11 +123,20 @@ test.describe('Standings Page @standings', () => {
     await mockStandingsAPI(page, mockFullStandings());
     await page.goto('standings');
 
-    const teamNames = await page
-      .locator('[data-testid="standings-row"] [data-testid="team-name"]')
-      .allTextContents();
+    // 等資料載入完成（6 列可見後再讀順序）
+    await expect(page.locator('[data-testid="standings-row"]:visible')).toHaveCount(6);
 
-    expect(teamNames.map((s) => s.trim())).toEqual(['綠', '紅', '黑', '黃', '白', '藍']);
+    // 用 evaluate 自行過濾「DOM 中可見」的列（mobile/desktop 雙渲染只有一邊有 boundingRect）
+    const teamNames = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('[data-testid="standings-row"]'))
+        .filter((el) => {
+          const rect = el.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0;
+        })
+        .map((el) => el.querySelector('[data-testid="team-name"]')?.textContent?.trim() ?? '');
+    });
+
+    expect(teamNames).toEqual(['綠', '紅', '黑', '黃', '白', '藍']);
   });
 
   // ────── AC-10: Loading state ──────
@@ -138,7 +148,7 @@ test.describe('Standings Page @standings', () => {
     await expect(page.locator('[data-testid="skeleton-row"]').first()).toBeVisible();
 
     // 資料載入後 skeleton 消失
-    await expect(page.locator('[data-testid="standings-row"]').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="standings-row"]:visible').first()).toBeVisible({ timeout: 5000 });
     await expect(page.locator('[data-testid="skeleton-row"]')).toHaveCount(0);
   });
 
@@ -195,7 +205,7 @@ test.describe('Standings Page @standings', () => {
     await mockStandingsAPI(page, mockZeroRecordStandings());
     await page.goto('standings');
 
-    const firstRow = page.locator('[data-testid="standings-row"]').first();
+    const firstRow = page.locator('[data-testid="standings-row"]:visible').first();
     await expect(firstRow.locator('[data-testid="pct"]')).toContainText('—');
     await expect(firstRow.locator('[data-testid="pct"]')).not.toContainText('0.0');
   });
@@ -205,7 +215,7 @@ test.describe('Standings Page @standings', () => {
     await mockStandingsAPI(page, mockEightTeamStandings());
     await page.goto('standings');
 
-    const rows = page.locator('[data-testid="standings-row"]');
+    const rows = page.locator('[data-testid="standings-row"]:visible');
     await expect(rows).toHaveCount(8);
 
     // 容器寬度應大於每列內容寬度（避免水平 overflow）
@@ -226,7 +236,7 @@ test.describe('Standings Page RWD @standings', () => {
     await mockStandingsAPI(page, mockFullStandings());
     await page.goto('standings');
 
-    const rows = page.locator('[data-testid="standings-row"]');
+    const rows = page.locator('[data-testid="standings-row"]:visible');
     await expect(rows).toHaveCount(6);
 
     // 卡片垂直排列：第一張和第二張的 X 座標接近、Y 座標遞增
@@ -241,7 +251,7 @@ test.describe('Standings Page RWD @standings', () => {
     await mockStandingsAPI(page, mockFullStandings());
     await page.goto('standings');
 
-    const rows = page.locator('[data-testid="standings-row"]');
+    const rows = page.locator('[data-testid="standings-row"]:visible');
     await expect(rows).toHaveCount(6);
 
     // 桌機應為單一橫排表格容器：所有列 X 座標接近、Y 座標遞增
