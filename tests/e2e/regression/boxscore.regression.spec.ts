@@ -44,6 +44,10 @@ test.describe('Boxscore Regression @boxscore-regression', () => {
     await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockFullLeaders() });
     await page.goto('boxscore');
 
+    // 等 React island (client:load) hydration 完成，避免 click 早於 onClick 綁定
+    await expect(page.locator('[data-testid="data-hero"]')).toBeVisible();
+    await expect(page.locator('[data-testid="sub-tab"][data-tab="boxscore"]')).toBeVisible();
+
     await page.locator('[data-testid="sub-tab"][data-tab="boxscore"]').click();
     await expect(page).toHaveURL(/[?&]tab=boxscore/);
     await expect(page.locator('[data-testid="boxscore-panel"]')).toBeVisible();
@@ -59,6 +63,8 @@ test.describe('Boxscore Regression @boxscore-regression', () => {
     await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockFullLeaders() });
     await page.goto('boxscore?week=5&game=2');
 
+    // 等 hydration
+    await expect(page.locator('[data-testid="data-hero"]')).toBeVisible();
     await expect(page.locator('[data-testid="sub-tab"][data-tab="boxscore"]')).toHaveAttribute('data-active', 'true');
     const activeChip = page.locator('[data-testid="bs-week-chip"][data-active="true"]');
     await expect(activeChip).toContainText(/5/);
@@ -71,6 +77,7 @@ test.describe('Boxscore Regression @boxscore-regression', () => {
     await mockLeadersAPI(page, mockFullLeaders());
     await page.goto('boxscore?tab=boxscore');
 
+    await expect(page.locator('[data-testid="data-hero"]')).toBeVisible();
     await expect(page.locator('[data-testid="bs-error"]')).toBeVisible();
 
     // 切到 leaders 仍 OK
@@ -84,6 +91,7 @@ test.describe('Boxscore Regression @boxscore-regression', () => {
     await mockLeadersAPI(page, mockEmptyLeaders());
     await page.goto('boxscore?tab=leaders');
 
+    await expect(page.locator('[data-testid="data-hero"]')).toBeVisible();
     await expect(page.locator('[data-testid="leaders-empty"]')).toBeVisible();
     await expect(page.locator('[data-testid="leaders-error"]')).toHaveCount(0);
   });
