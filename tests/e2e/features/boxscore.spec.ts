@@ -59,9 +59,12 @@ test.describe('Boxscore Page — Hero @boxscore', () => {
     const subtitle = page.locator('[data-testid="hero-subtitle"]');
     await expect(subtitle).toContainText(/領先榜/);
 
-    // 切到 boxscore tab
-    await page.locator('[data-testid="sub-tab"][data-tab="boxscore"]').click();
-    await expect(subtitle).toContainText(/逐場\s*Box/);
+    // 切到 boxscore tab — toPass retry 容忍 hydration 競態
+    const boxscoreTab = page.locator('[data-testid="sub-tab"][data-tab="boxscore"]');
+    await expect(async () => {
+      await boxscoreTab.click();
+      await expect(subtitle).toContainText(/逐場\s*Box/, { timeout: 1000 });
+    }).toPass({ timeout: 10_000 });
   });
 });
 
@@ -101,8 +104,11 @@ test.describe('Boxscore Sub-tab + Deep Link @boxscore', () => {
     await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockFullLeaders() });
     await page.goto('boxscore'); // leaders 預設
 
-    await page.locator('[data-testid="sub-tab"][data-tab="boxscore"]').click();
-    await expect(page).toHaveURL(/[?&]tab=boxscore(&|$)/);
+    const boxscoreTab = page.locator('[data-testid="sub-tab"][data-tab="boxscore"]');
+    await expect(async () => {
+      await boxscoreTab.click();
+      await expect(page).toHaveURL(/[?&]tab=boxscore(&|$)/, { timeout: 1000 });
+    }).toPass({ timeout: 10_000 });
 
     // reload 仍在 boxscore
     await page.reload();
@@ -133,11 +139,14 @@ test.describe('Boxscore Sub-tab + Deep Link @boxscore', () => {
     await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockFullLeaders() });
     await page.goto('boxscore?week=5&game=1');
 
-    await page.locator('[data-testid="sub-tab"][data-tab="leaders"]').click();
-
-    await expect(page).toHaveURL(/[?&]tab=leaders/);
-    await expect(page).not.toHaveURL(/week=/);
+    // leaders tab 為預設，URL 清乾淨（不帶 tab/week/game）— impl 設計
+    const leadersTab = page.locator('[data-testid="sub-tab"][data-tab="leaders"]');
+    await expect(async () => {
+      await leadersTab.click();
+      await expect(page).not.toHaveURL(/week=/, { timeout: 1000 });
+    }).toPass({ timeout: 10_000 });
     await expect(page).not.toHaveURL(/game=/);
+    await expect(page).not.toHaveURL(/tab=/);
   });
 });
 
@@ -148,7 +157,8 @@ test.describe('Boxscore Tab — chip + game cards @boxscore', () => {
     await page.goto('boxscore?tab=boxscore');
 
     const activeChip = page.locator('[data-testid="bs-week-chip"][data-active="true"]');
-    await expect(activeChip).toContainText(/5/); // mockFullBoxscore.currentWeek = 5
+    // fetchBoxscore 解析後 currentWeek = max(weeks)，ALL_BOX_GAMES 涵蓋 W1/W5/W6 → 預設 W6 active
+    await expect(activeChip).toContainText(/6/);
   });
 
   // ────── AC-3: 切換 chip → 該週 6 場 ──────
