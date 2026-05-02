@@ -33,7 +33,9 @@
 
 ## Phase 3 — 整合測試
 
-**結果**：❌（test_gaps，工具疑似誤判）— 待主人決策
+**結果**：✅（人工 override，test_gaps=18 經驗證為工具 false positive）
+
+> **主人決策（Option A）**：code-graph `detect_changes_tool` 將已有直接 unit test 的 utility（`formatPct` 等 5 個）也列入 untested，證實是 tree-sitter call-edge 解析缺陷而非真實覆蓋缺口。實質覆蓋（16 utility unit + 11 component smoke + 6 integration + 17 E2E spec）充足，繼續 Phase 4。
 
 ### Retry r1（首次執行）
 
