@@ -2,7 +2,7 @@
  * tests/helpers/mock-api — Re-export 統一入口
  *
  * 涵蓋範圍：
- *   集合 schedule / standings / boxscore / leaders 四個 mock 模組，
+ *   集合 schedule / standings / boxscore / leaders / roster 五個 mock 模組，
  *   供所有 E2E spec 以不變的 import path 使用：
  *   `import { ... } from '../../helpers/mock-api'`
  *
@@ -11,6 +11,7 @@
  *   standings.ts — mockStandingsAPI
  *   boxscore.ts  — mockBoxscoreSheetsAPI + mockBoxscoreAndLeaders
  *   leaders.ts   — mockLeadersAPI
+ *   roster.ts    — mockRosterAPI + mockDragonAPI + mockRosterAndDragon
  */
 
 export { mockScheduleAPI, mockKindAPI } from './schedule';
@@ -23,6 +24,9 @@ export type { BoxscoreMockOptions } from './boxscore';
 
 export { mockLeadersAPI } from './leaders';
 export type { LeadersMockOptions } from './leaders';
+
+export { mockRosterAPI, mockDragonAPI, mockRosterAndDragon } from './roster';
+export type { RosterAndDragonMockOptions } from './roster';
 
 // re-export types for fixture consumers
 export type { BoxscoreData, LeaderData } from './boxscore';

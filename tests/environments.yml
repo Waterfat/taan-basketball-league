@@ -26,6 +26,20 @@ external:
     fallback: data/*.json
     notes: 改 gas/Code.gs 後需手動重新部署 GAS
 
+# 環境變數清單（qa-v2 / ops-v2 讀取）
+env_vars:
+  PUBLIC_GAS_WEBAPP_URL:
+    purpose: Google Apps Script webapp URL，api.ts 三層 fallback 的第一層
+    used_by: [src/lib/api.ts]
+    sources:
+      acc_pw_section: taan-basketball-league
+      ci: gh variable (vars)
+    inject_at:
+      dev: .env.local
+      test: vitest.config.ts define（vi.stubEnv 替代）
+      build: .github/workflows/*.yml build job env
+    required_for: [dev, build, deploy]
+
 # 測試覆蓋目標
 coverage:
   unit:
