@@ -1,0 +1,60 @@
+# Issue #6 — [L] feature: / 首頁即時概覽 dashboard 實作
+
+**分級**：L  
+**START_SECONDS**：1777744176  
+**狀態**：進行中
+
+## Phase 0 開工
+
+- [x] 0.1 讀 Issue + 分級 [L]，上一個結案 #9（無升級 regression 標記）
+- [x] 0.2 建 worktree feat/6-home-dashboard → ../taan-basketball-league-issue-6
+- [x] 0.3 TaskCreate Phase Tasks（Task #1–7）
+
+## Phase 1 規劃
+
+- [x] 1.1 qa-v2 plan #6（含 fixture inventory）→ `issue-6_qaplan.md`
+- [x] 1.2 qa-v2 寫 E2E + integration test（5 spec files in tests/e2e/features/home/）
+- [x] 1.3 sp-writing-plans-v2 → `docs/specs/plans/2026-05-03-issue-6-home-dashboard.md` + `planned` label
+- [x] 1.4 Read plan，context 暫存：4 tasks，Group A(T1+T2並行)→B(T3)→C(T4)
+
+## Phase 2 執行
+
+- [x] Task 1：Types + Utils + Unit Tests（`0faa709`）— 104 tests pass
+- [x] Task 2：State Components Skeleton/Error/Empty（`e1c7b65`）
+- [x] Task 3：Content Components HeroBanner/Schedule/MiniStandings/MiniLeaders/MiniDragon（`a3ed314`）
+- [x] Task 4：HomeDashboard island + index.astro（`35a7607`）
+
+## Phase 3 整合測試
+
+**結果**：✅ PASSED（T3 誤判 override）
+
+| 項目 | 結果 |
+|------|------|
+| Unit + Integration tests | ✅ 104/104 PASS |
+| test_gaps（code-graph 報告）| 15（T3 類誤判，override 生效）|
+| 實際 test_gaps | 0 |
+
+**誤判 override 理由**（T3 類 — 第 3 次，instinct 已記錄）：
+- code-graph 缺口清單全為 React 顯示元件（EmptyState、ErrorState、HeroBanner、HomeDashboard、MiniDragon 等）
+- 這些元件由 `tests/e2e/features/home/` 5 個 spec 完整覆蓋（22 個 E2E case）
+- code-graph 只掃 Vitest，不讀 Playwright spec → 已知工具限制，非真實缺口
+- 本專案 pattern：React 顯示元件不寫 unit test（與 standings/schedule/boxscore 元件一致）
+- evolve-v2 確認：observations=3 → T3 類誤判已文件化，B-1 提案（改 qa-v2 Phase 3 流程）待使用者確認
+
+## Phase 4 程式碼交付
+
+- [ ] 4.1 commit + push feature branch
+- [ ] 4.2 建 PR
+- [ ] 4.3 merge to main
+
+## Phase 5 部署記錄
+
+<!-- 結果寫入此處 -->
+
+## Phase 6 E2E 驗收
+
+<!-- 結果寫入此處 -->
+
+## Metrics
+
+<!-- 結案後填入 -->
