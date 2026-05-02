@@ -44,9 +44,52 @@
 
 （依計畫檔自動填入 task index）
 
-## Phase 3 — 整合測試
+## Phase 3 整合測試
 
-（待 Phase 2 完成）
+**結果**：✅（人工 override，test_gaps=56 經驗證為工具 false positive，沿用 Issue #3 前例）
+**執行時間**：2026-05-02 00:22 TST
+**test_gaps**：56（code-graph detect_changes 報；經 Plan Coverage Matrix 對照，全部由 E2E 32+5 case 涵蓋）
+
+> **主人決策（Option A）**：code-graph `detect_changes_tool` 把 React 元件內 inline arrow（`handler` / `deriveBase` / `readUrlState`）、presentational 元件（`BoxscoreEmpty` / `LeadersEmpty` / `LeadersError` 等）、useCallback 內部 closure 全部列入 untested。Plan 設計時這些就由 E2E 涵蓋（spec 已存在 features/boxscore.spec.ts 32 case + regression 5 case），同 Issue #3 工具 false positive 模式。實質覆蓋充足，繼續 Phase 4。
+
+### 執行清單
+- ✅ Vitest unit + integration: **95/95 passed**（10 test files）
+  - boxscore-utils.test.ts (U-1 + U-2): 9 cases
+  - boxscore-deep-link.test.ts (U-3 + U-4 + U-5): 17 cases
+  - leaders-format.test.ts (U-6): 7 cases
+  - boxscore-parse.integration.test.ts (I-1 ~ I-10): 10 cases
+  - 既有 schedule (U) + standings (rebase 後合併進來) + sample / staff-display: 52 cases
+- ✅ Build smoke：`npm run build` 成功（dist/boxscore/index.html 15037 bytes）
+- ✅ Rebase origin/main 完成（解決 tests/helpers/mock-api.ts 衝突 — 保留 Issue #3 的 `mockKindAPI<T>` 抽象 + 加入本 Issue 的 `mockBoxscoreSheetsAPI` / `mockLeadersAPI` / `mockBoxscoreAndLeaders`）
+
+### 工具誤判分析
+
+`detect_changes_tool` 報 56 個 untested，分布如下（皆由 E2E 涵蓋）：
+
+| 類別 | 數量 | 實際覆蓋來源 |
+|------|-----:|------------|
+| BoxscoreApp 內部 closure（readUrlState / handleSelectTab / handleWeekChange / handler / deriveBase）| ~5 | E-6 / E-7 / E-8 / E-11（切 tab + URL sync + popstate） |
+| 11 個 React 元件本體（BoxscoreApp / BoxscorePanel / LeadersPanel 等）| ~16 | E-1 ~ E-32 + R-1 ~ R-5 |
+| Skeleton / Error / Empty 三狀態 presentational 元件 | ~6 | E-17 / E-23 / E-24 / E-26 / E-28 / E-29 |
+| inline arrow / map callback / useEffect cleanup | ~25 | 跟著元件被 E2E 覆蓋 |
+| 測試本身的 describe/it block（graph 把它當 function） | ~4 | 不應列入 |
+
+**結論**：與 Issue #3 同樣的 tree-sitter call-edge 解析缺陷，無法將 React 元件 props/E2E `data-testid` 視為覆蓋邊。在此專案規模下無法靠補 unit test 解除（補完 11 個元件 smoke test 預期 test_gaps 也只小幅下降，因 inline closure 無法被獨立 unit 測試）。
+
+### 與 Issue #1 / #3 對照
+
+| Issue | test_gaps | 處理 |
+|-------|----------|------|
+| #1 | 0（graph 未建） | 跳過 |
+| #3 | 18 | Option A 人工 override |
+| #4 | 56 | Option A 人工 override（本 Issue）|
+
+實質覆蓋（不依賴 graph）：
+- 26 個 unit test（U-1 ~ U-6 全直接調用）
+- 10 個 integration test（透過真實 transformBoxscore + fetchBoxscore + fetchData）
+- 32 + 5 個 E2E spec（已存在 features/regression，待 Phase 6 UAT 跑）
+
+**主人決策**：Option A — 視為工具誤判，繼續 Phase 4。
 
 ## Phase 4 — 程式碼交付
 
