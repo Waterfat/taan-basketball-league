@@ -38,10 +38,11 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
     <title>{pageTitle}</title>
     <ClientRouter />
   </head>
-  <body class="min-h-screen bg-cream text-txt-dark">
-    <!-- 桌機 nav -->
+  <!-- App Shell：document 不滾，內容區獨立滾。修 iOS WebView sticky 穿透問題 -->
+  <body class="h-[100dvh] flex flex-col overflow-hidden bg-cream text-txt-dark">
+    <!-- 桌機 nav（flex-shrink-0，不被壓縮，自然成為 fixed top）-->
     <nav
-      class="sticky top-0 z-50 hidden md:flex items-center bg-navy h-[58px] px-6 shadow-md"
+      class="flex-shrink-0 z-50 hidden md:flex items-center bg-navy h-[58px] px-6 shadow-md"
       aria-label="主選單"
     >
       <a href={`${BASE}/`} class="text-orange font-display text-[1.35rem] tracking-wider mr-6 whitespace-nowrap">
@@ -66,13 +67,14 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
       </ul>
     </nav>
 
-    <main class="pb-20 md:pb-0">
+    <!-- 內容區：唯一可滾元素，overscroll-contain 防穿透 -->
+    <main class="flex-1 overflow-y-auto overscroll-contain">
       <slot />
     </main>
 
-    <!-- 手機底部 nav -->
+    <!-- 手機底部 nav（flex-shrink-0，自然 stick 在 viewport 底）-->
     <nav
-      class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-navy h-15 border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,.3)] overflow-x-auto"
+      class="flex-shrink-0 md:hidden z-50 bg-navy h-15 border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,.3)] overflow-x-auto"
       aria-label="主選單（手機）"
     >
       <div class="flex items-stretch h-full min-w-max px-1">
