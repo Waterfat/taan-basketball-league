@@ -23,7 +23,7 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
   // ── AC-12 ──
   test('AC-12: 資料載入中顯示 skeleton', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData(), { delayMs: 2000 });
-    await page.goto('/');
+    await page.goto('');
 
     // 未 await 資料完成前，skeleton 應可見
     await expect(page.getByTestId('home-skeleton')).toBeVisible({ timeout: 1000 });
@@ -34,7 +34,7 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
   // ── AC-13 ──
   test('AC-13: GAS + JSON 全失敗 → 顯示錯誤訊息 + 重試按鈕', async ({ page }) => {
     await mockHomeAPI(page, null, { allFail: true });
-    await page.goto('/');
+    await page.goto('');
 
     // UI 結構
     await expect(page.getByTestId('home-error')).toBeVisible();
@@ -58,7 +58,7 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
         });
       }
     });
-    await page.goto('/');
+    await page.goto('');
 
     // 等待錯誤狀態
     await expect(page.getByTestId('home-error')).toBeVisible();
@@ -74,7 +74,7 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
   // ── AC-14 ──
   test('AC-14: home.json 空資料 → 「賽季尚未開始」訊息', async ({ page }) => {
     await mockHomeAPI(page, mockEmptyHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     await expect(page.getByTestId('home-empty')).toBeVisible();
     await expect(page.getByText(/賽季尚未開始/)).toBeVisible();
@@ -83,7 +83,7 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
   // ── AC-15 ──
   test('AC-15: streakType null → 不顯示 icon，只顯示文字', async ({ page }) => {
     await mockHomeAPI(page, mockHomeDataWithNullStreak());
-    await page.goto('/');
+    await page.goto('');
 
     const rows = page.getByTestId('home-standings').getByTestId('home-standings-row');
     const first = rows.first();
@@ -97,7 +97,7 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
   // ── AC-16 ──
   test('AC-16: 領先榜某指標 players < 3 → 顯示有的，不報錯', async ({ page }) => {
     await mockHomeAPI(page, mockHomeDataWithFewPlayers());
-    await page.goto('/');
+    await page.goto('');
 
     await expect(page.getByTestId('home-error')).not.toBeVisible();
 
@@ -115,7 +115,7 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
   // ── AC-17 ──
   test('AC-17: 龍虎榜 < 5 筆 → 顯示有的，不報錯', async ({ page }) => {
     await mockHomeAPI(page, mockHomeDataWithFewDragon());
-    await page.goto('/');
+    await page.goto('');
 
     await expect(page.getByTestId('home-error')).not.toBeVisible();
     const rows = page.getByTestId('home-dragon').getByTestId('dragon-row');

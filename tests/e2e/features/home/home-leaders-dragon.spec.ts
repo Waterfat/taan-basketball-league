@@ -16,7 +16,7 @@ test.describe('Home — 領先榜 + 龍虎榜 @home @leaders @dragon', () => {
   // ── AC-5 ──
   test('AC-5: 領先榜三指標（得分/籃板/助攻）各顯示 top 3 並排', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     const block = page.getByTestId('home-leaders');
     await expect(block).toBeVisible();
@@ -35,7 +35,7 @@ test.describe('Home — 領先榜 + 龍虎榜 @home @leaders @dragon', () => {
   // ── AC-6 + AC-8 ──
   test('AC-6/8: 領先榜 CTA 連 /boxscore?tab=leaders', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     const cta = page.getByTestId('home-leaders').getByRole('link', { name: /看完整領先榜/ });
     await expect(cta).toBeVisible();
@@ -47,7 +47,7 @@ test.describe('Home — 領先榜 + 龍虎榜 @home @leaders @dragon', () => {
   // ── AC-7 ──
   test('AC-7: 龍虎榜顯示 top 5（rank / 名 / 隊 / 總分）', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     const block = page.getByTestId('home-dragon');
     await expect(block).toBeVisible();
@@ -66,7 +66,7 @@ test.describe('Home — 領先榜 + 龍虎榜 @home @leaders @dragon', () => {
   // ── AC-7 CTA + AC-8 ──
   test('AC-7/8: 龍虎榜 CTA 連 /roster?tab=dragon', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     const cta = page.getByTestId('home-dragon').getByRole('link', { name: /看完整龍虎榜/ });
     await expect(cta).toBeVisible();

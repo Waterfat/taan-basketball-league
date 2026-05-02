@@ -16,7 +16,7 @@ test.describe('Home — Hero + 本週賽程 @home', () => {
   // ── AC-1 ──
   test('AC-1: Hero 顯示「TAAN BASKETBALL」+ 第 25 季 + 例行賽 + 第 3 週', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     // UI 結構
     await expect(page.getByRole('heading', { name: /TAAN BASKETBALL/i })).toBeVisible();
@@ -28,7 +28,7 @@ test.describe('Home — Hero + 本週賽程 @home', () => {
   // ── AC-2 ──
   test('AC-2: 本週賽程區塊顯示日期 + 場地', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     // UI 結構
     const scheduleBlock = page.getByTestId('home-schedule');
@@ -40,7 +40,7 @@ test.describe('Home — Hero + 本週賽程 @home', () => {
   // ── AC-2 CTA + AC-8 ──
   test('AC-2/8: 本週賽程 CTA 連到 /schedule', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     // 互動流程
     const cta = page.getByTestId('home-schedule').getByRole('link', { name: /看本週對戰/ });

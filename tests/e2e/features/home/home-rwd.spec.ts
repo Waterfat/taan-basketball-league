@@ -17,7 +17,7 @@ test.describe('Home — RWD @home @rwd', () => {
   test('AC-10: 手機（< 768px）各區塊垂直堆疊', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     const container = page.getByTestId('home-dashboard');
     await expect(container).toBeVisible();
@@ -39,7 +39,7 @@ test.describe('Home — RWD @home @rwd', () => {
   test('AC-11: 桌機（≥ 768px）戰績榜 + 龍虎榜並排兩欄', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     const standingsBox = await page.getByTestId('home-standings').boundingBox();
     const dragonBox = await page.getByTestId('home-dragon').boundingBox();
@@ -52,7 +52,7 @@ test.describe('Home — RWD @home @rwd', () => {
   test('AC-11: 桌機領先榜三指標橫排', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     const cats = page.getByTestId('home-leaders').getByTestId('leader-category');
     await expect(cats).toHaveCount(3);

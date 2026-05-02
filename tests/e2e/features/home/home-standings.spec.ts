@@ -16,7 +16,7 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
   // ── AC-3 ──
   test('AC-3: 戰績榜顯示 6 隊（rank / 隊色點+名 / 勝敗 / 勝率 / 連勝紀錄）', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     // UI 結構
     const block = page.getByTestId('home-standings');
@@ -38,7 +38,7 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
   // ── AC-3 CTA + AC-8 ──
   test('AC-3/8: 戰績榜 CTA「看完整戰績」連 /standings', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     const cta = page.getByTestId('home-standings').getByRole('link', { name: /看完整戰績/ });
     await expect(cta).toBeVisible();
@@ -50,7 +50,7 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
   // ── AC-4: 連勝視覺 ──
   test('AC-4: 連勝隊伍 streak 橙字 + ↑ icon', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     // 綠隊（rank 1）是 win
     const greenRow = page
@@ -66,7 +66,7 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
   // ── AC-4: 連敗視覺 ──
   test('AC-4: 連敗隊伍 streak 紅字 + ↓ icon', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     // 紅隊（rank 2）是 lose
     const redRow = page
@@ -82,7 +82,7 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
   // ── AC-9: 隊伍列 deep link ──
   test('AC-9: 點戰績榜隊伍列跳 /roster?team=<id>', async ({ page }) => {
     await mockHomeAPI(page, mockHomeData());
-    await page.goto('/');
+    await page.goto('');
 
     // 互動流程：點第一列
     const firstRow = page
