@@ -44,16 +44,22 @@ test.describe('Boxscore Regression @boxscore-regression', () => {
     await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockFullLeaders() });
     await page.goto('boxscore');
 
-    // 等 React island (client:load) hydration 完成，避免 click 早於 onClick 綁定
+    // 等 React island (client:load) hydration 完成
     await expect(page.locator('[data-testid="data-hero"]')).toBeVisible();
-    await expect(page.locator('[data-testid="sub-tab"][data-tab="boxscore"]')).toBeVisible();
+    const boxscoreTab = page.locator('[data-testid="sub-tab"][data-tab="boxscore"]');
+    const leadersTab = page.locator('[data-testid="sub-tab"][data-tab="leaders"]');
+    await expect(boxscoreTab).toBeVisible();
 
-    await page.locator('[data-testid="sub-tab"][data-tab="boxscore"]').click();
-    await expect(page).toHaveURL(/[?&]tab=boxscore/);
+    // toPass retry 容忍 hydration 競態：button visible 但 React onClick 尚未綁定
+    await expect(async () => {
+      await boxscoreTab.click();
+      await expect(page).toHaveURL(/[?&]tab=boxscore/, { timeout: 1000 });
+    }).toPass({ timeout: 10_000 });
     await expect(page.locator('[data-testid="boxscore-panel"]')).toBeVisible();
 
-    await page.locator('[data-testid="sub-tab"][data-tab="leaders"]').click();
-    await expect(page).toHaveURL(/[?&]tab=leaders/);
+    // 切回 leaders → URL 不帶 tab 參數（impl 設計：leaders 是預設 tab，URL 清乾淨）
+    await leadersTab.click();
+    await expect(page).not.toHaveURL(/[?&]tab=/);
     await expect(page.locator('[data-testid="leaders-panel"]')).toBeVisible();
 
     expect(errors).toEqual([]);
