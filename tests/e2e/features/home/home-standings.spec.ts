@@ -22,7 +22,7 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
     const block = page.getByTestId('home-standings');
     await expect(block).toBeVisible();
 
-    const rows = block.getByTestId('home-standings-row');
+    const rows = block.getByTestId('home-standings-row').filter({ visible: true });
     await expect(rows).toHaveCount(6);
 
     // 確認第一列欄位
@@ -52,10 +52,11 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
     await mockHomeAPI(page, mockHomeData());
     await page.goto('');
 
-    // 綠隊（rank 1）是 win
+    // 綠隊（rank 1）是 win — 只取可見列（桌機 table row）
     const greenRow = page
       .getByTestId('home-standings')
       .getByTestId('home-standings-row')
+      .filter({ visible: true })
       .filter({ has: page.getByTestId('team-name').filter({ hasText: '綠' }) });
 
     const streak = greenRow.getByTestId('streak');
@@ -68,10 +69,11 @@ test.describe('Home — 戰績榜迷你版 @home @standings', () => {
     await mockHomeAPI(page, mockHomeData());
     await page.goto('');
 
-    // 紅隊（rank 2）是 lose
+    // 紅隊（rank 2）是 lose — 只取可見列（桌機 table row）
     const redRow = page
       .getByTestId('home-standings')
       .getByTestId('home-standings-row')
+      .filter({ visible: true })
       .filter({ has: page.getByTestId('team-name').filter({ hasText: '紅' }) });
 
     const streak = redRow.getByTestId('streak');

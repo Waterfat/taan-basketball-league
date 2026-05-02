@@ -85,7 +85,8 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
     await mockHomeAPI(page, mockHomeDataWithNullStreak());
     await page.goto('');
 
-    const rows = page.getByTestId('home-standings').getByTestId('home-standings-row');
+    // 只取可見列（桌機 table row），避免找到 CSS-hidden mobile 列
+    const rows = page.getByTestId('home-standings').getByTestId('home-standings-row').filter({ visible: true });
     const first = rows.first();
 
     // streak icon 不可見
@@ -118,7 +119,7 @@ test.describe('Home — 三狀態 + 邊界 @home @states', () => {
     await page.goto('');
 
     await expect(page.getByTestId('home-error')).not.toBeVisible();
-    const rows = page.getByTestId('home-dragon').getByTestId('dragon-row');
+    const rows = page.getByTestId('home-dragon').getByTestId('dragon-row').filter({ visible: true });
     await expect(rows).toHaveCount(2);
   });
 });

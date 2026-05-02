@@ -52,7 +52,7 @@ test.describe('Home — 領先榜 + 龍虎榜 @home @leaders @dragon', () => {
     const block = page.getByTestId('home-dragon');
     await expect(block).toBeVisible();
 
-    const rows = block.getByTestId('dragon-row');
+    const rows = block.getByTestId('dragon-row').filter({ visible: true });
     await expect(rows).toHaveCount(5);
 
     // 確認第一列欄位
