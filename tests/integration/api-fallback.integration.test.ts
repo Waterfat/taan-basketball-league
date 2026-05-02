@@ -1,13 +1,18 @@
 /**
  * Integration: src/lib/api.ts 三層 fallback 行為
  *
- * Tag: @api-fallback @schedule @standings
- * Coverage: 涵蓋 AC-11（GAS 失敗 → JSON fallback → 全失敗）的後端邏輯部分
+ * Tag: @api-fallback @schedule @standings @roster @dragon
+ * Coverage:
+ *   AC-11（GAS 失敗 → JSON fallback → 全失敗）— schedule / standings
+ *   Issue #5 I-1: fetchData('roster') fallback chain
+ *   Issue #5 I-2: fetchData('dragon') fallback chain
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { mockFullSchedule } from '../fixtures/schedule';
 import { mockFullStandings } from '../fixtures/standings';
+import { mockFullRoster } from '../fixtures/roster';
+import { mockFullDragonboard } from '../fixtures/dragon';
 
 // 動態 mock import.meta.env 與 fetch
 const ORIG_FETCH = globalThis.fetch;
@@ -135,6 +140,104 @@ describe('api.ts 三層 fallback (integration)', () => {
 
     const { fetchData } = await import('../../src/lib/api');
     const result = await fetchData('standings');
+
+    expect(result.source).toBe('error');
+    expect(result.data).toBeNull();
+  });
+
+  // ────── Issue #5 I-1: roster fallback ──────
+  it('roster: GAS 成功 → source: gas，資料含 teams 陣列', async () => {
+    const roster = mockFullRoster();
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url);
+      if (u.includes('script.google.com')) {
+        return new Response(JSON.stringify(roster), { status: 200 });
+      }
+      throw new Error('should not hit JSON');
+    }) as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    const result = await fetchData<typeof roster>('roster');
+
+    expect(result.source).toBe('gas');
+    expect(result.data?.teams).toHaveLength(6);
+  });
+
+  it('roster: GAS 失敗 → fallback 到 roster.json（source: static）', async () => {
+    const roster = mockFullRoster();
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url);
+      if (u.includes('script.google.com')) {
+        return new Response('GAS error', { status: 500 });
+      }
+      if (u.includes('roster.json')) {
+        return new Response(JSON.stringify(roster), { status: 200 });
+      }
+      throw new Error(`unexpected: ${u}`);
+    }) as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    const result = await fetchData<typeof roster>('roster');
+
+    expect(result.source).toBe('static');
+    expect(result.data?.teams).toHaveLength(6);
+  });
+
+  it('roster: GAS + JSON 都失敗 → source: error（驅動 UI error state）', async () => {
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url);
+      if (u.includes('script.google.com')) {
+        return new Response('GAS error', { status: 500 });
+      }
+      if (u.includes('roster.json')) {
+        return new Response('not found', { status: 404 });
+      }
+      throw new Error(`unexpected: ${u}`);
+    }) as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    const result = await fetchData('roster');
+
+    expect(result.source).toBe('error');
+    expect(result.data).toBeNull();
+  });
+
+  // ────── Issue #5 I-2: dragon fallback ──────
+  it('dragon: GAS 失敗 → fallback 到 dragon.json（source: static）', async () => {
+    const dragon = mockFullDragonboard();
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url);
+      if (u.includes('script.google.com')) {
+        return new Response('GAS error', { status: 500 });
+      }
+      if (u.includes('dragon.json')) {
+        return new Response(JSON.stringify(dragon), { status: 200 });
+      }
+      throw new Error(`unexpected: ${u}`);
+    }) as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    const result = await fetchData<typeof dragon>('dragon');
+
+    expect(result.source).toBe('static');
+    expect(result.data?.players).toHaveLength(10);
+    expect(result.data?.civilianThreshold).toBe(36);
+  });
+
+  it('dragon: GAS + JSON 都失敗 → source: error', async () => {
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url);
+      if (u.includes('script.google.com')) {
+        return new Response('GAS error', { status: 500 });
+      }
+      if (u.includes('dragon.json')) {
+        return new Response('not found', { status: 404 });
+      }
+      throw new Error(`unexpected: ${u}`);
+    }) as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    const result = await fetchData('dragon');
 
     expect(result.source).toBe('error');
     expect(result.data).toBeNull();
