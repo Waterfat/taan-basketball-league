@@ -70,3 +70,19 @@
 | ops-health | ✅ monitoring=false，URL 確認可訪問 |
 
 ## Phase 6 E2E 驗收
+
+**環境**：Production（https://waterfat.github.io/taan-basketball-league/）
+**執行時間**：2026-05-03 TST
+**整體結果**：✅ 全通過
+
+| 套件 | 結果 | 備註 |
+|------|------|------|
+| regression（boxscore × 2 + schedule）| ✅ 12/12 | 全綠 |
+| features/roster/hero-roster-tab | ✅ 8/8 | — |
+| features/roster/dragon-tab | ✅ 10/10 | locator fix r1 |
+| features/roster/deep-link | ✅ 3/3 | — |
+| features/roster/rwd | ✅ 1/1 | desktop only |
+| features/roster/states | ✅ 3/3 | — |
+
+**Hotfix**：`dragon-tab.spec.ts` AC-8 `civilian-divider` locator 加 `.first()`（桌機 `<tr>` + 手機 `<div>` 各一，strict mode 雙元素衝突）
+**Regression Promotion**：未升級（首次實作，影響範圍不跨 portal）
