@@ -6,5 +6,5 @@ const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <Layout title="首頁" active="home">
-  <HomeDashboard client:visible baseUrl={baseUrl} />
+  <HomeDashboard client:load baseUrl={baseUrl} />
 </Layout>
