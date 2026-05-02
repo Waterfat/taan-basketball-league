@@ -44,7 +44,7 @@ npx playwright test --ui                  # Playwright UI
 - **單一 spec 最大行數：200 行**（超過時按功能群組拆成子檔，放同一子目錄）
 - **子目錄規則**：共用同一頁面的多個 spec 放 `features/<page>/` 子目錄（如 `features/boxscore/`）；深一層互動群組再往下一層（如 `features/boxscore/boxscore-tab/`）
 - **docstring 必填**：每個 `.spec.ts` 與 `tests/helpers/mock-api/` 子模組最上方必須有 `/** docstring */`，標明 Coverage（AC 編號）與測試資料策略
-- **import path**：子目錄 spec 使用相對路徑 `../../../fixtures/`；helper 模組統一從 `tests/helpers/mock-api` import（index.ts re-export 不需改 import path）
+- **import path**：子目錄深度決定層數 — `features/<page>/` 一層用 `../../../fixtures/`；`features/<page>/<group>/` 兩層用 `../../../../fixtures/`；helper 模組統一從 `tests/helpers/mock-api` import（index.ts re-export，不需改 import path）
 - **並行安全**：同一目錄的 spec 不得共用 `let` 狀態（用 fixture 隔離），確保 `--workers` 並行下無競態
 
 ## 目錄結構
