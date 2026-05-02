@@ -1,14 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { RosterApp } from '../components/roster/RosterApp';
+
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <Layout title="球員名單" active="players">
-  <section class="px-4 md:px-8 py-8 max-w-6xl mx-auto">
-    <h1 class="font-display text-3xl md:text-5xl text-navy tracking-wider mb-2">球員名單</h1>
-    <p class="text-txt-mid mb-8">六隊球員與出席紀錄</p>
-
-    <div class="bg-white border border-warm-2 rounded-2xl p-8 text-center">
-      <p class="font-condensed text-2xl text-orange mb-2">規劃中</p>
-    </div>
-  </section>
+  <RosterApp client:load baseUrl={baseUrl} />
 </Layout>
