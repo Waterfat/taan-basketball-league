@@ -66,6 +66,71 @@
 
 ## Phase 5 部署記錄
 
+**結果**：✅ DEPLOYED
+**部署時間**：2026-05-03 21:04 TST（13:04 UTC）
+**部署目標**：GitHub Pages（https://waterfat.github.io/taan-basketball-league/）
+**觸發方式**：push main → GitHub Actions auto-build → push gh-pages → Pages serve（無 UAT 環境，prod 為唯一部署目標）
+
+| 項目 | 結果 |
+|------|------|
+| Workflow run | 25279930728 — Deploy to GitHub Pages |
+| Head SHA | 2f6669c |
+| Status | completed / success |
+| 耗時 | 約 1 分 34 秒（13:03:00 → 13:04:34 UTC）|
+
 ## Phase 6 E2E 驗收
 
+**環境**：Production（https://waterfat.github.io/taan-basketball-league/）
+**執行時間**：2026-05-03 21:08 TST
+**整體結果**：✅ 全通過
+
+| 指標 | 結果 |
+|------|------|
+| 通過 | **297 / 297** |
+| 失敗 | 0 |
+| 跳過 | 8（project scoping，預期）|
+| 總耗時 | 1.8 分 |
+
+| 案例集 | 結果 | 備註 |
+|---|---|---|
+| regression（boxscore + schedule × desktop + mobile）| ✅ 全綠 | P0 沒退化 |
+| features/home/（含 home-matchups Issue #14 新）| ✅ 全綠 | E-101~E-106 |
+| features/standings/（含 standings-matrix Issue #14 新）| ✅ 全綠 | E-201~E-205 |
+| features/standings.spec.ts（既有 + AC-11 等）| ✅ 全綠 | 不退化 |
+| features/boxscore/leaders.spec.ts + leaders-team.spec.ts（Issue #14 新）| ✅ 全綠 | E-301~E-304 + E-401~E-403 |
+| features/boxscore/leaders-tab.spec.ts（AC-9 6→11 同步）| ✅ 全綠 | sync to BQ-6 |
+| features/roster/roster-attendance.spec.ts（Issue #14 新）| ✅ 全綠 | E-501~E-503 |
+| features/roster/roster-team-filter.spec.ts（Issue #14 新）| ✅ 全綠 | E-601~E-604 |
+| features/roster/dragon-tab.spec.ts + dragon-tab-grouping.spec.ts（擴充 + 新）| ✅ 全綠 | E-801~E-804 |
+| features/roster/hero-roster-tab.spec.ts（擴充）| ✅ 全綠 | E-901~E-902 |
+| features/schedule/schedule-toggle.spec.ts（Issue #14 新）| ✅ 全綠 | E-701~E-702 |
+| features/schedule.spec.ts（既有）| ✅ 全綠 | 不退化 |
+
+11 子項全部部署到 prod 並通過驗收。
+
 ## Metrics
+
+```yaml
+issue: 14
+completed_at: 2026-05-03T21:28:04+08:00
+duration_estimate: 1h 33m
+issue_type: feat
+size: L
+phase1_retries: 0
+phase2_retries: 0
+blocked_count: 1
+phase3_retries: 0
+phase4_conflicts: 0
+phase5_retries: 0
+phase5_env_issues: 0
+phase6_retries: 0
+phase6_unrelated_failures: 0
+anomalous_dispatches:
+  - "sp-writing-plans-v2 agent stalled at writing step（5+ 分鐘無進度）→ killed via TaskStop → 在當前 context 直接寫 plan（資料完整可用）"
+  - "T6 agent 過程中觸發 git stash drop → 用 git fsck --lost-found 找回 dangling commit 3315a17 還原 15 個非 Task 6 scope 檔案；不影響最終結果"
+smoothness: 4
+```
+
+> smoothness=4：兩個 anomalous events（agent stuck + accidental stash drop）但都自我修復，prod E2E 297/0/8 一次過。
+
+> 規格擴展副作用：`tests/e2e/features/boxscore/leaders-tab.spec.ts AC-9` 由 6 → 11 類同步本 Issue BQ-6 規格（local 上既有 spec 因 fixture 升級已預期 fail，已修正並全綠）。
