@@ -5,6 +5,7 @@
  * Coverage:
  *   AC-4（每場標題 + 雙隊表格 + 工作人員 collapsible 預設摺疊）
  *   AC-4b（點工作人員箭頭 → 展開/收起）
+ *   E-6（Issue #13 A3 順帶驗收：「逐場 Box」分頁有比分卡片 + 比分文字）
  */
 
 import { test, expect } from '@playwright/test';
@@ -59,5 +60,21 @@ test.describe('Boxscore Tab — Game Cards @boxscore', () => {
 
     await toggle.click();
     await expect(panel).toBeHidden();
+  });
+
+  // ────── E-6（Issue #13 A3 順帶驗收）：逐場 Box 分頁有比分 ──────
+  test('逐場 Box 分頁載入時顯示該週比分（Issue #13 A3 / E-6）', async ({ page }) => {
+    await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockFullLeaders() });
+    await page.goto('boxscore?tab=boxscore');
+
+    // 比分卡片可見（fixture 預期該週有 6 場）
+    const gameCards = page.locator('[data-testid="bs-game-card"]');
+    await expect(gameCards.first()).toBeVisible({ timeout: 5000 });
+    expect(await gameCards.count()).toBeGreaterThan(0);
+
+    // 至少第一張卡片顯示比分文字（fixture 第 1 場固定比分 34 vs 22）
+    const firstTitle = gameCards.first().locator('[data-testid="bs-game-title"]');
+    await expect(firstTitle).toBeVisible();
+    await expect(firstTitle).toContainText(/\d+\s*vs\s*\d+/i);
   });
 });

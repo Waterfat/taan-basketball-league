@@ -34,6 +34,14 @@ test.describe('Standings Page @standings', () => {
     // 6 隊
     const rows = page.locator('[data-testid="standings-row"]:visible');
     await expect(rows).toHaveCount(6);
+
+    // E-5（Issue #13 A2 順帶驗收）：確認「最近 6 場」欄位有 ○✕ 圖示
+    // fixture mockFullStandings() 6 隊每隊都有 history 6 筆，至少要看到 1 個 history-dot
+    const firstRow = rows.first();
+    const historyCell = firstRow.locator('[data-testid="history"]');
+    await expect(historyCell).toBeVisible();
+    const dots = historyCell.locator('[data-testid="history-dot"]');
+    expect(await dots.count()).toBeGreaterThan(0);
   });
 
   // ────── AC-2: 每列 7 個欄位 ──────
