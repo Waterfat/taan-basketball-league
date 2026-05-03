@@ -48,11 +48,12 @@ test.describe('Data Fallback @data-fallback @issue-13', () => {
     await mockStandingsAPI(page, null, { allFail: true });
     await page.goto('standings');
 
-    // 頁面框架仍渲染（不白屏）：navigation + heading 應可見
-    await expect(page.locator('nav')).toBeVisible();
-    await expect(page.getByRole('heading', { name: /STANDINGS/i })).toBeVisible();
+    // 頁面框架仍渲染（不白屏）：navigation 可見 + error state 顯示
+    await expect(page.locator('nav:visible').first()).toBeVisible();
+    // 顯示錯誤訊息或重試按鈕（不崩潰、不白屏）
+    await expect(page.getByText(/無法載入|重試|資料載入失敗/).first()).toBeVisible();
 
-    // 空狀態：6 隊資料應為 0 列（或顯示 empty placeholder）
+    // 空狀態：0 列戰績資料
     const rows = page.locator('[data-testid="standings-row"]:visible');
     await expect(rows).toHaveCount(0);
   });
@@ -61,7 +62,7 @@ test.describe('Data Fallback @data-fallback @issue-13', () => {
     await mockHomeAPI(page, null, { allFail: true });
     await page.goto('');
 
-    await expect(page.locator('nav')).toBeVisible();
+    await expect(page.locator('nav:visible').first()).toBeVisible();
     // 整站可用：能 click 到其他頁
     await page.getByRole('link', { name: /賽程/ }).first().click();
     await expect(page).toHaveURL(/schedule/);

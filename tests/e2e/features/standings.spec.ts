@@ -172,7 +172,7 @@ test.describe('Standings Page @standings', () => {
   // ────── AC-11 [qa-v2 補充]：點重試按鈕重新嘗試 ──────
   test('[qa-v2 補充] AC-11b: 點重試按鈕 → 重新嘗試載入', async ({ page }) => {
     let callCount = 0;
-    await page.route(/script\.google\.com.*exec/, async (route) => {
+    await page.route(/sheets\.googleapis\.com\/v4\/spreadsheets/, async (route) => {
       callCount++;
       await route.fulfill({ status: 500, body: 'fail' });
     });
