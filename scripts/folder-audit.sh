@@ -48,6 +48,27 @@ if [ -d "$ROOT/tests/e2e" ]; then
   done
 fi
 
+# ─── 規則 5：tests/e2e/ 禁止 mock 攔截器（只掃本次 staged 檔案，避免既有違規擋全部 commit）──
+# 政策依據：tests/TESTING.md 「特殊測試流程 → 三層 fallback 驗證」紅線
+# E2E 必須對真實 URL 跑端到端鏈路；要 deterministic 假資料 → 改寫 unit/integration test
+STAGED_E2E=$(git diff --cached --name-only --diff-filter=AM 2>/dev/null | grep -E '^tests/e2e/(regression|features)/.*\.(spec|test)\.ts$' || true)
+if [ -n "$STAGED_E2E" ]; then
+  BAD_FILES=""
+  for f in $STAGED_E2E; do
+    if [ -f "$ROOT/$f" ] && grep -qE 'page\.route\(|mock[A-Z][a-zA-Z]*API|route\.fulfill|page\.context\(\)\.route' "$ROOT/$f"; then
+      BAD_FILES="${BAD_FILES}
+   $f"
+    fi
+  done
+  if [ -n "$BAD_FILES" ]; then
+    echo "❌ [folder-audit] tests/e2e/ 禁止 mock 攔截器（page.route / mockXxxAPI / route.fulfill）"
+    echo "$BAD_FILES"
+    echo "   E2E 必須對真實 URL 跑端到端鏈路。需要 deterministic 假資料 → 改寫 unit/integration test"
+    echo "   政策依據：tests/TESTING.md 「特殊測試流程 → 三層 fallback 驗證」"
+    VIOLATIONS=$((VIOLATIONS+1))
+  fi
+fi
+
 # ─── 規則 4：.claude-output/ 超過 7 天舊檔提示 ───────────────────────────
 if [ -d "$ROOT/.claude-output" ]; then
   OLD_COUNT=$(find "$ROOT/.claude-output" -type f -mtime +7 2>/dev/null | wc -l | tr -d ' ')
