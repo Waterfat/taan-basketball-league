@@ -158,3 +158,41 @@ describe('api.ts leaders extended (integration)', () => {
     expect(season?.offense).toBeUndefined();
   });
 });
+
+describe('Sheets path 4-block 解析（Issue #17）', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubEnv('PUBLIC_SHEET_ID', 'TEST');
+    vi.stubEnv('PUBLIC_SHEETS_API_KEY', 'KEY');
+  });
+
+  afterEach(() => {
+    globalThis.fetch = ORIG_FETCH;
+    vi.unstubAllEnvs();
+  });
+
+  it('fetchData(stats) Sheets path 回出 offense/defense/net 三張 6 隊表 (Covers: I-6)', async () => {
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url);
+      if (u.includes('sheets.googleapis.com')) {
+        return new Response(JSON.stringify({
+          valueRanges: [
+            { range: 'datas!D212:N224', values: [['得分', '王', '紅', '20.5']] },
+            { range: 'datas!D227:K234', values: [['隊伍'], ...Array.from({ length: 6 }, (_, i) => [['紅','黑','藍','綠','黃','白'][i], '0', '0', '0'])] },
+            { range: 'datas!D237:K244', values: [['隊伍'], ...Array.from({ length: 6 }, (_, i) => [['紅','黑','藍','綠','黃','白'][i], '0', '0', '0'])] },
+            { range: 'datas!D247:K254', values: [['隊伍'], ...Array.from({ length: 6 }, (_, i) => [['紅','黑','藍','綠','黃','白'][i], '0'])] },
+          ],
+        }), { status: 200 });
+      }
+      throw new Error(`unexpected: ${u}`);
+    }) as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    type R = Record<string, { offense?: { rows: unknown[] }; defense?: { rows: unknown[] }; net?: { rows: unknown[] } }>;
+    const result = await fetchData<R>('stats');
+    expect(result.source).toBe('sheets');
+    expect(result.data?.['25'].offense?.rows).toHaveLength(6);
+    expect(result.data?.['25'].defense?.rows).toHaveLength(6);
+    expect(result.data?.['25'].net?.rows).toHaveLength(6);
+  });
+});

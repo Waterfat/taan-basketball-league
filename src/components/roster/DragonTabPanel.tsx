@@ -161,11 +161,17 @@ interface Props {
  *   - 平民（civilian）：total >= civilianThreshold（含邊界）
  *   - 奴隸（slave）：total < civilianThreshold
  *
- * Group titles 顯示「前 N 名 / 第 N+1 名起」中 N 為 civilianThreshold（不是 civilianCount），
- * 對齊 E-801/E-802 expectations（threshold=10 → 前 10 名 / 第 11 名起）。
+ * Group titles 顯示「前 N 名 / 第 N+1 名起」中 N 為 **civilians.length**（實際分組人數，
+ * 不是 civilianThreshold 分數線數值），對齊 Issue #17 AC-3：
+ *   threshold=10 + 5 位球員 total >= 10 → 前 5 名 / 第 6 名起
+ *
+ * civilian-divider 文案中的「{civilianThreshold} 分」保留（仍是分數線，與分組標題的 N 解耦）。
  *
  * 既有 `civilian-divider` testid 保留（向後相容 AC-8 dragon-tab.spec），
- * 改放在兩個 group section 之間，PC 與 Mobile 皆可見。
+ * 放在兩個 group section 之間，PC 與 Mobile 皆可見。
+ *
+ * 註：title 字串以 template literal 預先計算，避免 React SSR 在數字與文字之間插入
+ * `<!-- -->` 註解（讓 e2e / unit 用 toContain 直接斷言完整字串）。
  */
 export function DragonTabPanel({ data }: Props) {
   if (!data.players || data.players.length === 0) {
@@ -181,8 +187,13 @@ export function DragonTabPanel({ data }: Props) {
   const { players, civilianThreshold, rulesLink } = data;
   const civilians = players.filter((p) => p.total >= civilianThreshold);
   const slaves = players.filter((p) => p.total < civilianThreshold);
+  const civilianCount = civilians.length;
   // 是否需要顯示「平民線」分隔線（向後相容 AC-8）：兩區皆有球員時才顯示
   const showDivider = civilians.length > 0 && slaves.length > 0;
+
+  const civilianTitle = `🧑 平民區（前 ${civilianCount} 名 · 可優先自由選擇加入隊伍）`;
+  const slaveTitle = `⛓️ 奴隸區（第 ${civilianCount + 1} 名起 · 為聯盟貢獻過低淪為奴隸，無法自由選擇進入哪一隊）`;
+  const dividerLabel = `── 平民線（${civilianThreshold} 分）──`;
 
   return (
     <div data-testid="dragon-tab-panel" className="px-4 md:px-8 py-4 max-w-6xl mx-auto">
@@ -196,7 +207,7 @@ export function DragonTabPanel({ data }: Props) {
           data-testid="dragon-group-civilian-title"
           className="font-condensed text-base font-bold text-txt-dark mb-3"
         >
-          🧑 平民區（前 {civilianThreshold} 名 · 可優先自由選擇加入隊伍）
+          {civilianTitle}
         </h3>
         <DragonGroupTable
           players={civilians}
@@ -211,7 +222,7 @@ export function DragonTabPanel({ data }: Props) {
           data-testid="civilian-divider"
           className="text-center text-xs text-txt-mid py-2 my-2 border-y border-dashed border-warm-2"
         >
-          ── 平民線（{civilianThreshold} 分）──
+          {dividerLabel}
         </div>
       )}
 
@@ -225,7 +236,7 @@ export function DragonTabPanel({ data }: Props) {
           data-testid="dragon-group-slave-title"
           className="font-condensed text-base font-bold text-txt-dark mb-3"
         >
-          ⛓️ 奴隸區（第 {civilianThreshold + 1} 名起 · 為聯盟貢獻過低淪為奴隸，無法自由選擇進入哪一隊）
+          {slaveTitle}
         </h3>
         <DragonGroupTable players={slaves} threshold={civilianThreshold} />
       </section>

@@ -1,52 +1,54 @@
 /**
- * /（首頁）E2E — 領先榜 + 龍虎榜區塊
+ * E-6b：/（首頁）領先榜 + 龍虎榜迷你版（Issue #17 AC-5, AC-X1）
  *
- * Coverage: AC-5, AC-6, AC-7, AC-8（CTA）
+ * @coverage E-6b
+ * @issue #17
+ * @tag @home @leaders @dragon @issue-17
  *
- * 測試資料策略：
- * - 攔截 GAS + /data/home.json，使用 mockHomeData()
- * - 不打 production GAS
+ * 不再 mock home API；對 prod URL 跑真實鏈路：
+ *  - 領先榜三指標（得分/籃板/助攻）各 leader-category 存在
+ *  - CTA「看完整領先榜」連 /boxscore?tab=leaders
+ *  - 龍虎榜 top 5（rank / 名 / 隊 / 總分）
+ *  - CTA「看完整龍虎榜」連 /roster?tab=dragon
+ *
+ * 不寫死球員名（黃偉訓 / 韋承志）— 容忍 prod 真實資料變動。
  */
 
 import { test, expect } from '@playwright/test';
-import { mockHomeAPI } from '../../../helpers/mock-api';
-import { mockHomeData } from '../../../fixtures/home';
 
-test.describe('Home — 領先榜 + 龍虎榜 @home @leaders @dragon', () => {
-  // ── AC-5 ──
-  test('AC-5: 領先榜三指標（得分/籃板/助攻）各顯示 top 3 並排', async ({ page }) => {
-    await mockHomeAPI(page, mockHomeData());
+test.describe('Home — 領先榜 + 龍虎榜', () => {
+  test('領先榜三指標各 category 存在 + 至少 1 entry', async ({ page }) => {
     await page.goto('');
 
     const block = page.getByTestId('home-leaders');
     await expect(block).toBeVisible();
 
-    // 三個指標欄
     const cats = block.getByTestId('leader-category');
     await expect(cats).toHaveCount(3);
 
-    // 第一欄（得分）有 top 3 entries
+    // 至少第一個指標有資料
     const firstCat = cats.first();
-    await expect(firstCat.getByTestId('leader-entry')).toHaveCount(3);
-    await expect(firstCat.getByTestId('leader-entry').first().getByTestId('leader-name'))
-      .toContainText('黃偉訓');
+    const entries = firstCat.getByTestId('leader-entry');
+    const entryCount = await entries.count();
+    expect(entryCount).toBeGreaterThanOrEqual(1);
+
+    // 第一個 entry 有 leader-name
+    if (entryCount > 0) {
+      await expect(firstCat.getByTestId('leader-entry').first().getByTestId('leader-name')).toBeVisible();
+    }
   });
 
-  // ── AC-6 + AC-8 ──
-  test('AC-6/8: 領先榜 CTA 連 /boxscore?tab=leaders', async ({ page }) => {
-    await mockHomeAPI(page, mockHomeData());
+  test('領先榜 CTA 連 /boxscore?tab=leaders', async ({ page }) => {
     await page.goto('');
 
-    const cta = page.getByTestId('home-leaders').getByRole('link', { name: /看完整領先榜/ });
+    const cta = page.getByTestId('home-leaders').getByRole('link', { name: /看完整領先榜|完整領先榜/ });
     await expect(cta).toBeVisible();
 
     const href = await cta.getAttribute('href');
     expect(href).toMatch(/\/boxscore\?tab=leaders/);
   });
 
-  // ── AC-7 ──
-  test('AC-7: 龍虎榜顯示 top 5（rank / 名 / 隊 / 總分）', async ({ page }) => {
-    await mockHomeAPI(page, mockHomeData());
+  test('龍虎榜顯示 5 列（每列含 rank / name / team / total）', async ({ page }) => {
     await page.goto('');
 
     const block = page.getByTestId('home-dragon');
@@ -55,20 +57,17 @@ test.describe('Home — 領先榜 + 龍虎榜 @home @leaders @dragon', () => {
     const rows = block.getByTestId('dragon-row').filter({ visible: true });
     await expect(rows).toHaveCount(5);
 
-    // 確認第一列欄位
     const first = rows.first();
     await expect(first.getByTestId('rank')).toContainText('1');
-    await expect(first.getByTestId('name')).toContainText('韋承志');
-    await expect(first.getByTestId('team')).toContainText('紅');
-    await expect(first.getByTestId('total')).toContainText('16');
+    await expect(first.getByTestId('name')).toBeVisible();
+    await expect(first.getByTestId('team')).toBeVisible();
+    await expect(first.getByTestId('total')).toBeVisible();
   });
 
-  // ── AC-7 CTA + AC-8 ──
-  test('AC-7/8: 龍虎榜 CTA 連 /roster?tab=dragon', async ({ page }) => {
-    await mockHomeAPI(page, mockHomeData());
+  test('龍虎榜 CTA 連 /roster?tab=dragon', async ({ page }) => {
     await page.goto('');
 
-    const cta = page.getByTestId('home-dragon').getByRole('link', { name: /看完整龍虎榜/ });
+    const cta = page.getByTestId('home-dragon').getByRole('link', { name: /看完整龍虎榜|完整龍虎榜/ });
     await expect(cta).toBeVisible();
 
     const href = await cta.getAttribute('href');

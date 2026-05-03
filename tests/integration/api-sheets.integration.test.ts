@@ -111,6 +111,50 @@ describe('api.ts 直打 Sheets API (integration)', () => {
     expect(result.data).toBeTruthy();
   });
 
+  // ────── I-4: fetchData('home') composite shape ──────
+  it('fetchData(home) 回傳 composite shape 完整 (Covers: I-4)', async () => {
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url);
+      if (u.includes('sheets.googleapis.com')) {
+        return new Response(
+          JSON.stringify({
+            valueRanges: [
+              { range: 'datas!D2:M7', values: [['季後賽'], ['13']] },
+              {
+                range: 'datas!P2:T7',
+                values: [
+                  ['紅', '15', '5', '75.0%', '8連勝'],
+                  ['黑', '11', '9', '55.0%', '2連敗'],
+                  ['藍', '5', '15', '25.0%', '2連敗'],
+                  ['綠', '16', '4', '80.0%', '2連勝'],
+                  ['黃', '6', '14', '30.0%', '1連勝'],
+                  ['白', '7', '13', '35.0%', '1連敗'],
+                ],
+              },
+              {
+                range: 'datas!D13:L76',
+                values: [['李', '黑', '5', '0', '0', '—', '5', '', '']],
+              },
+              {
+                range: 'datas!D212:N224',
+                values: [['得分', '王', '紅', '20.5']],
+              },
+            ],
+          }),
+          { status: 200 },
+        );
+      }
+      throw new Error(`unexpected: ${u}`);
+    }) as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    type R = { standings: unknown[]; dragonTop10: unknown[] };
+    const result = await fetchData<R>('home');
+    expect(result.source).toBe('sheets');
+    expect(result.data?.standings).toHaveLength(6);
+    expect(result.data?.dragonTop10.length).toBeGreaterThan(0);
+  });
+
   // ────── 邊界：missing env vars ──────
   it('PUBLIC_SHEET_ID 未設定 → 直接 fallback 靜態 JSON（不打 Sheets API）[qa-v2 補充]', async () => {
     vi.stubEnv('PUBLIC_SHEET_ID', '');

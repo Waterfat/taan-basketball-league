@@ -12,7 +12,13 @@ import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { DragonTabPanel } from '../../src/components/roster/DragonTabPanel';
-import { mockFullDragonboard, mockDragonboardWithThreshold, mockEmptyDragonboard, mockDragonPlayer } from '../fixtures/dragon';
+import {
+  mockFullDragonboard,
+  mockDragonboardWithThreshold,
+  mockEmptyDragonboard,
+  mockDragonPlayer,
+  mockDragonGroupingShowcase,
+} from '../fixtures/dragon';
 
 describe('DragonTabPanel', () => {
   it('renders without throwing', () => {
@@ -84,5 +90,34 @@ describe('DragonTabPanel', () => {
     const html = renderToString(createElement(DragonTabPanel, { data }));
     const count = (html.match(/data-testid="dragon-player-row"/g) ?? []).length;
     expect(count).toBe(data.players.length);
+  });
+});
+
+/**
+ * Issue #17 Task 2 擴充：分組標題的 N 必須等於平民區實際渲染人數（civilians.length），
+ * 而不是 civilianThreshold 數值本身。
+ *
+ * Covers: U-1（B-7）— DragonTabPanel 分組標題對齊實際 civilians.length
+ *
+ * 驗證情境：
+ *   threshold = 10，players[0..4] total >= 10 → civilians.length = 5
+ *   標題應顯示「前 5 名」+「第 6 名起」（不是「前 10 名」+「第 11 名起」）
+ *   civilian-divider 文案保留「{civilianThreshold} 分」（仍是分數線，與分組標題的 N 解耦）
+ */
+describe('DragonTabPanel — group title N === civilians.length (Issue #17, Covers: U-1)', () => {
+  it('group title 顯示「前 N 名」N 等於平民區實際渲染人數', () => {
+    const data = mockDragonGroupingShowcase(); // threshold=10, players[0..4].total >= 10 → 5 civilians
+    const html = renderToString(createElement(DragonTabPanel, { data }));
+
+    const civiliansCount = data.players.filter((p) => p.total >= data.civilianThreshold).length;
+    expect(civiliansCount).toBe(5);
+
+    // 平民區標題：N = civilians.length
+    expect(html).toContain(`前 ${civiliansCount} 名`);
+    // 奴隸區標題：起始名次 = civilians.length + 1
+    expect(html).toContain(`第 ${civiliansCount + 1} 名起`);
+
+    // 分數線（civilian-divider）保留以 civilianThreshold 為文案
+    expect(html).toContain(`平民線（${data.civilianThreshold} 分）`);
   });
 });

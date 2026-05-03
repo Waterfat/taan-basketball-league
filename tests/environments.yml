@@ -65,3 +65,15 @@ env_vars:
       test: vi.stubEnv('PUBLIC_SHEETS_API_KEY', 'TEST_API_KEY') 於 integration test beforeEach
       build: .github/workflows/*.yml build job env
     required_for: [dev, test, build, deploy]
+
+  PUBLIC_SITE_URL:
+    purpose: 站台 canonical URL（Schema.org SEO / og:url 用）
+    used_by: [src/config/site.ts]
+    sources:
+      acc_pw_section: null  # 無敏感資訊，預設值即可
+      ci: gh variable (vars)
+    inject_at:
+      dev: 預設值（src/config/site.ts 有 fallback）
+      test: 不需注入（有 default）
+      build: .github/workflows/*.yml build job env（可選）
+    required_for: [build, deploy]
