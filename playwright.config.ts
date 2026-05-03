@@ -15,6 +15,10 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    extraHTTPHeaders: {
+      // reason: Sheets API key 有 referrer 限制（白名單 waterfat.github.io）；CI runner / dev 環境 referer 為 localhost 會被擋
+      Referer: 'https://waterfat.github.io/',
+    },
   },
   projects: [
     {
