@@ -2,6 +2,27 @@
   "season": 25,
   "currentWeek": 3,
   "phase": "例行賽",
+  "weekMatchups": {
+    "week": 3,
+    "date": "2026 / 2 / 14（六）07:30",
+    "venue": "三重體育館",
+    "combos": [
+      { "combo": 1, "home": "白", "away": "紅", "status": "upcoming" },
+      { "combo": 2, "home": "黃", "away": "黑", "status": "upcoming" },
+      { "combo": 3, "home": "藍", "away": "綠", "status": "upcoming" },
+      { "combo": 4, "home": "黑", "away": "白", "status": "upcoming" },
+      { "combo": 5, "home": "紅", "away": "藍", "status": "upcoming" },
+      { "combo": 6, "home": "綠", "away": "黃", "status": "upcoming" }
+    ],
+    "games": [
+      { "num": 1, "time": "07:30", "home": "白", "away": "紅", "status": "upcoming" },
+      { "num": 2, "time": "08:30", "home": "黃", "away": "黑", "status": "upcoming" },
+      { "num": 3, "time": "09:30", "home": "藍", "away": "綠", "status": "upcoming" },
+      { "num": 4, "time": "10:30", "home": "黑", "away": "白", "status": "upcoming" },
+      { "num": 5, "time": "11:30", "home": "紅", "away": "藍", "status": "upcoming" },
+      { "num": 6, "time": "12:30", "home": "綠", "away": "黃", "status": "upcoming" }
+    ]
+  },
   "scheduleInfo": {
     "date": "2026 / 2 / 14（六）07:30",
     "venue": "三重體育館"

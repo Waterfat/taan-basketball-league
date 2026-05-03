@@ -58,3 +58,23 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
+
+/* ══════════════════════════════════════
+   Standings Matrix cell colors（Issue #14 Task 5）
+   class mapping 由 src/lib/standings-matrix-utils.ts 的
+   getCellClass() 產生：matrix-cell--{positive|negative|zero|self}
+   ══════════════════════════════════════ */
+.matrix-cell--positive {
+  color: #15803d; /* green-700 */
+  background-color: #f0fdf4; /* green-50 */
+}
+.matrix-cell--negative {
+  color: #b91c1c; /* red-700 */
+  background-color: #fef2f2; /* red-50 */
+}
+.matrix-cell--zero {
+  color: var(--color-txt-mid);
+}
+.matrix-cell--self {
+  color: var(--color-txt-light);
+}

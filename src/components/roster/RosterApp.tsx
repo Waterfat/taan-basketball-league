@@ -9,6 +9,8 @@ import { RosterHero } from './RosterHero';
 import { SubTabs } from './SubTabs';
 import { RosterTabPanel } from './RosterTabPanel';
 import { DragonTabPanel } from './DragonTabPanel';
+import { AttendanceLegend } from './AttendanceLegend';
+import { TeamFilterChips, type TeamFilterValue } from './TeamFilterChips';
 
 type Status = 'loading' | 'error' | 'empty' | 'ok';
 
@@ -35,6 +37,8 @@ export function RosterApp({ baseUrl }: Props) {
   const initial = readUrlState();
   const [activeTab, setActiveTab] = useState<RosterTab>(resolveRosterTab(initial.tab));
   const [highlightTeam, setHighlightTeam] = useState<string | null>(initial.team);
+  // 隊伍切換 chip：純 client-side state，預設「全部」（不從 URL 讀，避免與 deep-link `?team=<id>` 衝突）
+  const [selectedTeam, setSelectedTeam] = useState<TeamFilterValue>('all');
   const [rosterData, setRosterData] = useState<RosterData | null>(null);
   const [dragonData, setDragonData] = useState<DragonData | null>(null);
   const [status, setStatus] = useState<Status>('loading');
@@ -97,6 +101,10 @@ export function RosterApp({ baseUrl }: Props) {
     window.history.replaceState(null, '', url);
   }, [baseUrl]);
 
+  const handleSelectTeamChip = useCallback((next: TeamFilterValue) => {
+    setSelectedTeam(next);
+  }, []);
+
   if (status === 'loading') return <SkeletonState />;
   if (status === 'error') return <ErrorState onRetry={handleRetry} />;
   if (status === 'empty' || !rosterData) return <EmptyState />;
@@ -109,10 +117,19 @@ export function RosterApp({ baseUrl }: Props) {
         season={dragon.season}
         phase={dragon.phase}
         civilianThreshold={dragon.civilianThreshold}
+        activeTab={activeTab}
       />
       <SubTabs activeTab={activeTab} onSelect={handleSelectTab} />
       {activeTab === 'roster' ? (
-        <RosterTabPanel data={rosterData} highlightTeamId={highlightTeam} />
+        <>
+          <AttendanceLegend />
+          <TeamFilterChips selected={selectedTeam} onSelect={handleSelectTeamChip} />
+          <RosterTabPanel
+            data={rosterData}
+            highlightTeamId={highlightTeam}
+            selectedTeam={selectedTeam}
+          />
+        </>
       ) : (
         <DragonTabPanel data={dragon} />
       )}
