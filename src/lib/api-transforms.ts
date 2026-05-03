@@ -51,7 +51,7 @@ export function transformHome(ranges: SheetsValueRange[]): HomeData {
   const values = ranges[0]?.values ?? [];
   const phase = values[0]?.[0] ?? '';
   const currentWeek = parseInt(values[1]?.[0] ?? '0', 10) || 0;
-  const nextDate = values[3]?.[0] ?? '';
+  const date = values[3]?.[0] ?? '';
   const venue = values[5]?.[0] ?? '';
 
   // 注意：HomeData 的完整 shape 含 standings / dragonTop10 / miniStats，
@@ -61,9 +61,15 @@ export function transformHome(ranges: SheetsValueRange[]): HomeData {
     season: SEASON,
     phase,
     currentWeek,
-    nextDate,
-    venue,
-  } as unknown as HomeData;
+    scheduleInfo: { date, venue },
+    standings: [],
+    dragonTop10: [],
+    miniStats: {
+      pts: { label: '', unit: '', players: [] },
+      reb: { label: '', unit: '', players: [] },
+      ast: { label: '', unit: '', players: [] },
+    },
+  };
 }
 
 /**

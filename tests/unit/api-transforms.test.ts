@@ -44,8 +44,8 @@ describe('transformHome', () => {
     expect(result.season).toBe(25);
     expect(result.phase).toBe('季後賽');
     expect(result.currentWeek).toBe(13);
-    expect(result.nextDate).toBe('2026/5/9');
-    expect(result.venue).toBe('大安');
+    expect(result.scheduleInfo.date).toBe('2026/5/9');
+    expect(result.scheduleInfo.venue).toBe('大安');
   });
 });
 
