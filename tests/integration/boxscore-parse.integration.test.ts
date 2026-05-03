@@ -145,8 +145,8 @@ describe('Integration: fetchData("stats") fallback chain', () => {
     const { fetchData } = await import('../../src/lib/api');
     const result = await fetchData('stats');
 
-    // 注意：GAS_URL 未設定時會直接 fallback；測試環境如未注入 PUBLIC_GAS_WEBAPP_URL 則改驗 static 路徑
-    expect(['gas', 'static']).toContain(result.source);
+    // 注意：PUBLIC_SHEET_ID/PUBLIC_SHEETS_API_KEY 未設定時會直接 fallback；測試環境如未注入則改驗 static 路徑
+    expect(['sheets', 'static']).toContain(result.source);
     expect(result.data).not.toBeNull();
   });
 
