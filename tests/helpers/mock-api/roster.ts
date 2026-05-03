@@ -1,9 +1,12 @@
 /**
  * Playwright Mock — Roster & Dragon（球員名單 + 龍虎榜）攔截
  *
+ * [Issue #13] 從 GAS Webapp 中介層改為直打 Google Sheets API v4。
+ * 行為由 mockKindAPI 統一處理（簡化版：第一層 Sheets 恆 fail，由 fallback JSON 供應資料）。
+ *
  * 涵蓋範圍：
- *   - mockRosterAPI：攔截 GAS + /data/roster.json
- *   - mockDragonAPI：攔截 GAS + /data/dragon.json
+ *   - mockRosterAPI：攔截 Sheets API + /data/roster.json
+ *   - mockDragonAPI：攔截 Sheets API + /data/dragon.json
  *   - mockRosterAndDragon：同時攔截兩者（大多數測試使用）
  *
  * 使用方式：
@@ -34,6 +37,7 @@ export async function mockDragonAPI(
 }
 
 export interface RosterAndDragonMockOptions {
+  /** 名稱保留 `gasFails` 以維持向後相容；簡化版實作中第一層 Sheets 恆 fail，此 flag 不再影響行為。 */
   gasFails?: boolean;
   allFail?: boolean;
   delayMs?: number;
