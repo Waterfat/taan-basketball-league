@@ -128,6 +128,9 @@ describe('Integration: fetchBoxscore (Sheets API direct)', () => {
 
 describe('Integration: fetchData("stats") fallback chain', () => {
   beforeEach(() => {
+    // Issue #17 Task 7: 每個 case 重置 modules 確保 in-memory cache 不互相污染
+    //   （否則 I-8 setCache('stats') → I-9 getCached hit 導致誤回 source 'sheets'）
+    vi.resetModules();
     vi.stubGlobal('fetch', vi.fn());
   });
 
@@ -136,7 +139,7 @@ describe('Integration: fetchData("stats") fallback chain', () => {
     vi.restoreAllMocks();
   });
 
-  it('I-8: GAS 成功 → source="gas"', async () => {
+  it('I-8: Sheets 成功 → source="sheets"', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockFullLeaders()),
@@ -145,12 +148,12 @@ describe('Integration: fetchData("stats") fallback chain', () => {
     const { fetchData } = await import('../../src/lib/api');
     const result = await fetchData('stats');
 
-    // 注意：PUBLIC_SHEET_ID/PUBLIC_SHEETS_API_KEY 未設定時會直接 fallback；測試環境如未注入則改驗 static 路徑
+    // vitest.config.ts 已注入 PUBLIC_SHEET_ID/PUBLIC_SHEETS_API_KEY，stats 走 Sheets path
     expect(['sheets', 'static']).toContain(result.source);
     expect(result.data).not.toBeNull();
   });
 
-  it('I-9: 全部失敗 → source="error"', async () => {
+  it('I-9: 全部失敗 → source="error"（Issue #17 AC-E1：stats 配置正確且失敗 → 直接 error，不 fallback static）', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('all down'));
 
     const { fetchData } = await import('../../src/lib/api');

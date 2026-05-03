@@ -1,181 +1,77 @@
 /**
- * /（首頁）E2E — 本週對戰預覽 + Toggle（Issue #14）
+ * E-6c：/（首頁）本週對戰預覽 + Toggle（Issue #17 AC-5, AC-X1）
  *
- * Coverage:
- *   E-101 (B-1.1): 首頁顯示 6 組對戰預覽
- *   E-102 (B-1.2): 切換 toggle 顯示「對戰組合 / 賽程順序」
- *   E-103 (B-2.1): 智慧切換 — gamesPublished: false → 預設「對戰組合」
- *   E-104 (B-2.2): 智慧切換 — gamesPublished: true → 預設「賽程順序」
- *   E-105 (B-E2): gamesPublished: false → 顯示提示文字「本週場次順序尚未公告」
- *   E-106 (BQ-4): toggle 切換 → URL query string 同步（?view=combo / ?view=order）
+ * @coverage E-6c
+ * @issue #17
+ * @tag @home @matchups @issue-17
  *
- * 測試資料策略：
- *   - 使用 mockHomeWithWeekMatchups({ gamesPublished: true }) 建立已公告順序情境
- *   - 使用 mockHomeWithWeekMatchups({ gamesPublished: false }) 建立尚未公告情境
- *   - 透過 mockHomeAPI(page, data) 攔截 /data/home.json，不打 production
- *   - 每個 test 獨立 mock，並行安全
+ * 不再 mock home API；對 prod URL 跑真實鏈路：
+ *  - 對戰預覽區塊渲染（matchup-card 數量 >= 1）
+ *  - toggle radiogroup 結構存在 + 切換可改 aria-pressed
+ *  - URL ?view=combo / ?view=order 同步
+ *
+ * 智慧預設（gamesPublished true→order / false→combo）邏輯由 unit test 涵蓋
+ * （tests/unit/matchups-toggle-utils.test.ts）；本 spec 不再驗 deterministic 預設情境。
+ *
+ * 「本週場次順序尚未公告」提示文字情境（gamesPublished:false）改由 unit 元件測試
+ * （resolveDefaultView + UI render contract）覆蓋，不在 prod e2e 主動觸發。
  */
 
 import { test, expect } from '@playwright/test';
-import { mockHomeAPI } from '../../../helpers/mock-api';
-import { mockHomeWithWeekMatchups } from '../../../fixtures/home';
 
-test.describe('Home — 本週對戰預覽（已公告順序）', () => {
-  // ── E-101 + E-104: 首頁顯示 6 組對戰預覽，智慧預設「賽程順序」 ──
-  test(
-    'E-101/E-104: 顯示 6 組對戰卡片，gamesPublished:true → 預設「賽程順序」',
-    { tag: ['@home', '@issue-14', '@matchups'] },
-    async ({ page }) => {
-      const dataPromise = page.waitForResponse((resp) =>
-        /\/data\/home\.json$/.test(resp.url()) && resp.status() === 200,
-      );
-      await mockHomeAPI(page, mockHomeWithWeekMatchups({ gamesPublished: true }));
-      await page.goto('');
-      await dataPromise;
+test.describe('Home — 本週對戰預覽', () => {
+  test('home-matchups 區塊可見 + 有 matchup-card', async ({ page }) => {
+    await page.goto('');
 
-      // UI 結構：section 容器、toggle、預設視圖可見
-      await expect(page.getByTestId('home-matchups')).toBeVisible();
-      await expect(page.getByTestId('matchups-toggle-order')).toHaveAttribute('aria-pressed', 'true');
-      await expect(page.getByTestId('matchups-toggle-combo')).toHaveAttribute('aria-pressed', 'false');
-      await expect(page.getByTestId('matchups-order-list')).toBeVisible();
-      await expect(page.getByTestId('matchups-combo-list')).toBeHidden();
+    await expect(page.getByTestId('home-matchups')).toBeVisible();
 
-      // 資料驗證：6 張對戰卡片存在
-      await expect(page.getByTestId('matchup-card')).toHaveCount(6);
-    },
-  );
+    const cards = page.getByTestId('matchup-card');
+    const count = await cards.count();
+    expect(count).toBeGreaterThanOrEqual(1);
+  });
 
-  // ── E-102: 切換 toggle ──
-  test(
-    'E-102: toggle 可切換「對戰組合 / 賽程順序」兩種視圖',
-    { tag: ['@home', '@issue-14', '@matchups'] },
-    async ({ page }) => {
-      await mockHomeAPI(page, mockHomeWithWeekMatchups({ gamesPublished: true }));
-      await page.goto('');
+  test('toggle radiogroup 結構存在', async ({ page }) => {
+    await page.goto('');
 
-      // UI 結構：toggle 存在且為 radiogroup
-      const toggle = page.getByTestId('matchups-toggle');
-      await expect(toggle).toBeVisible();
-      await expect(toggle).toHaveAttribute('role', 'radiogroup');
+    const toggle = page.getByTestId('matchups-toggle');
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute('role', 'radiogroup');
 
-      const orderBtn = page.getByTestId('matchups-toggle-order');
-      const comboBtn = page.getByTestId('matchups-toggle-combo');
+    await expect(page.getByTestId('matchups-toggle-combo')).toBeVisible();
+    await expect(page.getByTestId('matchups-toggle-order')).toBeVisible();
+  });
 
-      // 互動：切換到「對戰組合」
-      await comboBtn.click();
-      await expect(comboBtn).toHaveAttribute('aria-pressed', 'true');
-      await expect(orderBtn).toHaveAttribute('aria-pressed', 'false');
-      await expect(page.getByTestId('matchups-combo-list')).toBeVisible();
-      await expect(page.getByTestId('matchups-order-list')).toBeHidden();
+  test('toggle 切換 → aria-pressed 與 list visibility 同步', async ({ page }) => {
+    await page.goto('');
+    await expect(page.getByTestId('matchups-toggle')).toBeVisible();
 
-      // 資料驗證：切換後仍有 6 張卡片
-      await expect(page.getByTestId('matchup-card')).toHaveCount(6);
-    },
-  );
-});
+    // 不假設預設是 combo 還是 order（取決於 prod gamesPublished 真實狀態）
+    await page.getByTestId('matchups-toggle-combo').click();
+    await expect(page.getByTestId('matchups-toggle-combo')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('matchups-toggle-order')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByTestId('matchups-combo-list')).toBeVisible();
 
-test.describe('Home — 本週對戰預覽（順序未公告）', () => {
-  // ── E-103: 智慧切換 — gamesPublished: false → 預設「對戰組合」 ──
-  test(
-    'E-103: gamesPublished: false → 智慧預設為「對戰組合」',
-    { tag: ['@home', '@issue-14', '@matchups'] },
-    async ({ page }) => {
-      const dataPromise = page.waitForResponse((resp) =>
-        /\/data\/home\.json$/.test(resp.url()) && resp.status() === 200,
-      );
-      await mockHomeAPI(page, mockHomeWithWeekMatchups({ gamesPublished: false }));
-      await page.goto('');
-      await dataPromise;
+    await page.getByTestId('matchups-toggle-order').click();
+    await expect(page.getByTestId('matchups-toggle-order')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('matchups-order-list')).toBeVisible();
+  });
 
-      // UI 結構：section 可見
-      await expect(page.getByTestId('home-matchups')).toBeVisible();
+  test('toggle 切換 → URL query 同步 ?view=combo / ?view=order', async ({ page }) => {
+    await page.goto('');
+    await expect(page.getByTestId('home-matchups')).toBeVisible();
 
-      // 互動：驗證預設選中「對戰組合」
-      await expect(page.getByTestId('matchups-toggle-combo')).toHaveAttribute('aria-pressed', 'true');
-      await expect(page.getByTestId('matchups-toggle-order')).toHaveAttribute('aria-pressed', 'false');
+    await page.getByTestId('matchups-toggle-combo').click();
+    await expect(page).toHaveURL(/[?&]view=combo/);
 
-      // 資料驗證：「對戰組合」列表可見
-      await expect(page.getByTestId('matchups-combo-list')).toBeVisible();
-      await expect(page.getByTestId('matchups-order-list')).toBeHidden();
-    },
-  );
+    await page.getByTestId('matchups-toggle-order').click();
+    await expect(page).toHaveURL(/[?&]view=order/);
+  });
 
-  // ── E-105: 順序未公告提示文字 ──
-  test(
-    'E-105: gamesPublished: false → 顯示「本週場次順序尚未公告」提示',
-    { tag: ['@home', '@issue-14', '@matchups'] },
-    async ({ page }) => {
-      await mockHomeAPI(page, mockHomeWithWeekMatchups({ gamesPublished: false }));
-      await page.goto('');
+  test('帶 ?view=combo 進入 → combo toggle active', async ({ page }) => {
+    await page.goto('?view=combo');
 
-      // UI 結構：提示元素可見
-      const hint = page.getByTestId('matchups-unpublished-hint');
-      await expect(hint).toBeVisible();
-      await expect(hint).toContainText('本週場次順序尚未公告');
-
-      // 互動：即使切換到「賽程順序」tab，提示仍保持（或 tab 被禁用）
-      const orderBtn = page.getByTestId('matchups-toggle-order');
-      await orderBtn.click();
-
-      // 資料驗證：6 張對戰卡片仍然可見（對戰組合視圖）
-      const cards = page.getByTestId('matchup-card');
-      await expect(cards).toHaveCount(6);
-    },
-  );
-});
-
-test.describe('Home — toggle URL query string 同步', () => {
-  // ── E-106: toggle 切換 URL query 同步 ──
-  test(
-    'E-106: 切換 toggle → URL query string 同步為 ?view=combo / ?view=order',
-    { tag: ['@home', '@issue-14', '@matchups'] },
-    async ({ page }) => {
-      await mockHomeAPI(page, mockHomeWithWeekMatchups({ gamesPublished: true }));
-      await page.goto('');
-      await expect(page.getByTestId('home-matchups')).toBeVisible();
-
-      // 互動：切換到「對戰組合」
-      await page.getByTestId('matchups-toggle-combo').click();
-
-      // UI 結構：combo view 可見
-      await expect(page.getByTestId('matchups-combo-list')).toBeVisible();
-
-      // 資料驗證：URL 含 ?view=combo
-      await expect(page).toHaveURL(/[?&]view=combo/);
-
-      // 互動：切換回「賽程順序」
-      await page.getByTestId('matchups-toggle-order').click();
-
-      // UI 結構：order view 可見
-      await expect(page.getByTestId('matchups-order-list')).toBeVisible();
-
-      // 資料驗證：URL 含 ?view=order
-      await expect(page).toHaveURL(/[?&]view=order/);
-    },
-  );
-
-  // ── E-106b: 直接以 ?view=combo 進入首頁 ──
-  test(
-    'E-106b: 帶 ?view=combo 進入首頁 → 直接顯示「對戰組合」視圖',
-    { tag: ['@home', '@issue-14', '@matchups'] },
-    async ({ page }) => {
-      const dataPromise = page.waitForResponse((resp) =>
-        /\/data\/home\.json$/.test(resp.url()) && resp.status() === 200,
-      );
-      await mockHomeAPI(page, mockHomeWithWeekMatchups({ gamesPublished: true }));
-      await page.goto('?view=combo');
-      await dataPromise;
-
-      // UI 結構：section 可見
-      await expect(page.getByTestId('home-matchups')).toBeVisible();
-
-      // 互動：combo toggle 應為 active
-      await expect(page.getByTestId('matchups-toggle-combo')).toHaveAttribute('aria-pressed', 'true');
-
-      // 資料驗證：對戰組合視圖顯示，卡片數量 6
-      await expect(page.getByTestId('matchups-combo-list')).toBeVisible();
-      const cards = page.getByTestId('matchup-card');
-      await expect(cards).toHaveCount(6);
-    },
-  );
+    await expect(page.getByTestId('home-matchups')).toBeVisible();
+    await expect(page.getByTestId('matchups-toggle-combo')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('matchups-combo-list')).toBeVisible();
+  });
 });

@@ -12,8 +12,11 @@
  */
 
 import {
+  transformHome,
   transformStandings,
   transformDragon,
+  transformSchedule,
+  transformLeaders,
   type SheetsValueRange,
 } from './api-transforms';
 import { getCached, setCache } from './api-cache';
@@ -44,28 +47,38 @@ interface FetchResult<T> {
 /**
  * 各 DataKind 對應的 Sheets ranges（從舊 js/api.js sheetsRanges 移植）
  *
- * 本 Issue 完整啟用 Sheets path 的 kind（transformer 完整、單一 range）：
- *   - standings：6 隊戰績
+ * 本 Issue 完整啟用 Sheets path 的 kind（transformer 完整）：
+ *   - standings：6 隊戰績 + meta（season / phase / currentWeek）
  *   - dragon：龍虎榜
+ *   - home：composite shape（meta + standings + dragon top10 + miniStats）（Issue #17 Task 4）
+ *   - schedule：dates + allSchedule + allMatchups 三 range zip → weeks[]（Issue #17 Task 5）
+ *   - leaders / stats：個人類別表 + offense / defense / net 三張隊伍表（Issue #17 Task 6）
  *
  * 暫走 static fallback 的 kind（後續 Issue 補完整 transformer 後啟用 Sheets）：
- *   - home：HomeData 為多 range composite（meta + standings + dragon + miniStats），
- *           需重組合 + history 計算 + miniStats 從 stats range 取，本 Issue 不處理
- *   - schedule / roster / leaders：transformer 為 stub
+ *   - roster：transformer 為 stub
  *
  * 純 static 的 kind（無 Sheets path，nothing to do）：
  *   - boxscore：已有獨立模組 src/lib/boxscore-api.ts 處理
- *   - stats / rotation / hof：純靜態資料
+ *   - rotation / hof：純靜態資料
  */
 const SHEETS_RANGES: Record<DataKind, string[]> = {
-  standings: ['datas!P2:T7'],
+  // Issue #17 Task 1: standings 補 meta range（datas!D2:M7）讓 transformStandings
+  // 取得真實 phase / currentWeek（與 transformHome 共用同一 range；matrix 仍由 static JSON 補）
+  standings: ['datas!P2:T7', 'datas!D2:M7'],
   dragon: ['datas!D13:L76'],
-  home: [], // reason: composite transformer pending（多 range + history + miniStats）→ 後續 issue
-  schedule: [], // reason: transformSchedule 為 stub
+  // Issue #17 Task 4: home 啟用 composite Sheets path
+  // ranges 順序與 transformHome 對應：meta / standings / dragon / leaders mini
+  home: ['datas!D2:M7', 'datas!P2:T7', 'datas!D13:L76', 'datas!D212:N224'],
+  // Issue #17 Task 5: schedule 啟用 multi-range Sheets path
+  // ranges 順序與 transformSchedule 對應：dates / allSchedule / allMatchups
+  schedule: ['datas!P13:AG13', 'datas!D87:N113', 'datas!D117:F206'],
   roster: [], // reason: transformRoster 為 stub
-  leaders: [], // reason: transformLeaders 為 stub
+  // Issue #17 Task 6: leaders / stats 啟用 4-block Sheets path
+  // ranges 順序與 transformLeaders 對應：leadersTable / teamOffense / teamDefense / teamNet
+  // leaders 與 stats 共用同一資料源（GAS handleStats），前端走 Sheets v4 batchGet
+  leaders: ['datas!D212:N224', 'datas!D227:K234', 'datas!D237:K244', 'datas!D247:K254'],
+  stats: ['datas!D212:N224', 'datas!D227:K234', 'datas!D237:K244', 'datas!D247:K254'],
   boxscore: [],
-  stats: [],
   rotation: [],
   hof: [],
 };
@@ -73,6 +86,12 @@ const SHEETS_RANGES: Record<DataKind, string[]> = {
 const TRANSFORMERS: Partial<Record<DataKind, (r: SheetsValueRange[]) => unknown>> = {
   standings: transformStandings,
   dragon: transformDragon,
+  // Issue #17 Task 4: home 啟用 composite transformer
+  home: transformHome,
+  schedule: transformSchedule,
+  // Issue #17 Task 6: leaders / stats 共用 transformLeaders（4-block 解析）
+  leaders: transformLeaders,
+  stats: transformLeaders,
 };
 
 /**
@@ -118,7 +137,19 @@ async function fetchFromStatic<T>(kind: DataKind): Promise<T | null> {
 }
 
 /**
- * 統一資料取得入口。優先順序：cache → Sheets API → 靜態 JSON → error。
+ * 統一資料取得入口。
+ *
+ * Issue #17 AC-E1 後行為：
+ *   優先順序：cache → Sheets API（配置正確時）→ static JSON（合法例外）→ error。
+ *
+ *   - 配置正確（isSheetsConfigured() && kind 有 transformer + ranges）且 Sheets 失敗
+ *     → 直接回 source: 'error'，**不**再 fallback static JSON。
+ *     理由：static JSON 是賽季初範例，Sheets 失敗時 fallback 等於假裝成功，
+ *     使用者應看到「資料載入失敗 + 重試」而非過期範例資料。
+ *
+ *   - 合法走 static fallback 的情境：
+ *     1. SHEET_ID / API_KEY 未設定或為 placeholder（dev 本機未設定 .env.local）
+ *     2. 該 kind 的 SHEETS_RANGES 為空 [] 或 TRANSFORMERS 未註冊（如 roster / boxscore / rotation / hof）
  */
 export async function fetchData<T = unknown>(kind: DataKind): Promise<FetchResult<T>> {
   // 0. cache（5 分鐘 TTL，瀏覽器 tab scope）
@@ -127,20 +158,31 @@ export async function fetchData<T = unknown>(kind: DataKind): Promise<FetchResul
     return { data: cached, source: 'sheets' };
   }
 
-  // 1. Google Sheets API（如已設定且 kind 有對應 ranges + transformer）
-  if (isSheetsConfigured() && SHEETS_RANGES[kind].length > 0 && TRANSFORMERS[kind]) {
+  const sheetsConfigured = isSheetsConfigured();
+  const hasSheetsPath = SHEETS_RANGES[kind].length > 0 && !!TRANSFORMERS[kind];
+
+  // 1. Sheets path（配置正確 + kind 有 transformer + ranges）
+  if (sheetsConfigured && hasSheetsPath) {
     try {
       const data = await fetchFromSheets<T>(kind);
       if (data !== null) {
         setCache(kind, data);
         return { data, source: 'sheets' };
       }
+      // fetchFromSheets 回 null（理論上不該發生，因為 hasSheetsPath 已成立）→ 視同 error
+      return { data: null, source: 'error', error: 'Sheets returned null' };
     } catch (err) {
-      console.warn(`[api] Sheets fetch failed for ${kind}, falling back to static`, err);
+      // ⚠️ Issue #17 AC-E1：Sheets 配置正確但失敗 → 不 fallback，直接 error
+      console.error(`[api] Sheets fetch failed for ${kind} (configured)`, err);
+      return {
+        data: null,
+        source: 'error',
+        error: err instanceof Error ? err.message : String(err),
+      };
     }
   }
 
-  // 2. 靜態 JSON fallback
+  // 2. Static fallback（合法情境：placeholder / 未設定 / kind 無 transformer）
   try {
     const data = await fetchFromStatic<T>(kind);
     return { data, source: 'static' };

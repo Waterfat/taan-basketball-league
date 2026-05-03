@@ -1,173 +1,92 @@
 /**
- * /roster 頁面 — Hero Header + 球員名單 tab E2E
+ * E-4：/roster Hero + 球員名單 tab E2E（對 prod 真實鏈路）
  *
- * @tag @roster
- * Coverage:
- *   AC-1（Hero header：ROSTER · 第 N 季 + 賽季進行中 · 平民線 N 分）
- *   AC-2（球員名單 tab：6 隊各一 section 垂直堆疊）
- *   AC-3（每球員顯示名字 + 10 週出席色塊）
- *   AC-4（色塊樣式：1=主色白字 / 0=紅色白字 / x=黃色黑字 / ?=灰色虛框）
- *   AC-18（att 全 "?" → 10 個灰色虛框，不報錯）
- *   E-901（B-11.1）（/roster?tab=dragon hero subtitle 含「活躍度積分累計 · 決定下賽季選秀順位」）
- *   E-902（B-11.2）（hero 三個 chip：平民區 / 奴隸區 / ⚠ 季後賽加分於賽季結束後計入）
+ * @coverage E-4
+ * @issue #17
+ * @tag @roster @issue-17
  *
- * 測試資料策略：
- *   靜態前置條件：mockFullRoster() / mockFullDragonboard()（fixtures 手寫，不打 GAS）
- *   E2E 透過 mockRosterAndDragon 攔截 GAS + JSON
- *   龍虎榜 hero：mockDragonWithRulesLink()（rulesLink + threshold，可觸發 chip 顯示）
+ * 不再 mock Roster + Dragon API；對 prod URL 跑真實鏈路：
+ *  - Hero 標題含「ROSTER」+ 真實 season
+ *  - 預設球員名單 tab active（aria-selected="true"）
+ *  - 球員名單 6 隊 sections
+ *  - 每球員 10 個出席色塊（Issue #17 AC-4 transformRoster 補完後）
+ *  - dragon tab subtitle + chips（活躍度積分 / 平民區 / 奴隸區 / 季後賽加分提示）
+ *
+ * 出席色塊樣式（att=1/0/x/?）由 roster-utils 與 roster-components 單元測試涵蓋；
+ * 全 "?" 邊界（AC-18）需 deterministic 假資料 → unit test。
+ *
+ * 不寫死「第 25 季」/「平民線 36 分」等 prod 真實值。
  */
 
 import { test, expect } from '@playwright/test';
-import { mockFullRoster, mockRosterAllQuestions } from '../../../fixtures/roster';
-import { mockFullDragonboard, mockEmptyDragonboard, mockDragonWithRulesLink } from '../../../fixtures/dragon';
-import { mockRosterAndDragon } from '../../../helpers/mock-api';
 
-test.describe('Roster Page — Hero + 球員名單 tab @roster', () => {
-  // ────── AC-1: Hero header ──────
-  test('AC-1: /roster → Hero「ROSTER · 第 25 季」+ 副標「賽季進行中 · 平民線 36 分」+ 預設球員名單 tab', async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockFullDragonboard() });
+test.describe('Roster Hero — 真實 season + phase', () => {
+  test('AC-1: /roster → Hero「ROSTER」+ 真實 season + subtitle 不為破碎字串', async ({ page }) => {
     await page.goto('roster');
 
-    await expect(page.locator('[data-testid="hero-title"]')).toContainText('ROSTER');
-    await expect(page.locator('[data-testid="hero-title"]')).toContainText('第 25 季');
-    await expect(page.locator('[data-testid="hero-subtitle"]')).toContainText('賽季進行中');
-    await expect(page.locator('[data-testid="hero-subtitle"]')).toContainText('平民線 36 分');
+    const heroTitle = page.locator('[data-testid="hero-title"]');
+    await expect(heroTitle).toBeVisible();
+    await expect(heroTitle).toContainText('ROSTER');
+    await expect(heroTitle).toContainText(/第\s*\d+\s*季/);
 
-    // 預設球員名單 tab 為選中
+    const subtitle = page.locator('[data-testid="hero-subtitle"]');
+    await expect(subtitle).toBeVisible();
+
+    // subtitle 不為破碎字串
+    const subtitleText = (await subtitle.textContent()) ?? '';
+    expect(subtitleText).not.toContain('undefined');
+    expect(subtitleText).not.toContain('NaN');
+    expect(subtitleText.length).toBeGreaterThan(0);
+
+    // 預設球員名單 tab active
     await expect(page.locator('[data-testid="sub-tab"][data-tab="roster"]')).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('[data-testid="roster-tab-panel"]')).toBeVisible();
   });
 
-  // ────── AC-2: 6 隊 section ──────
-  test('AC-2: 球員名單 tab → 6 隊各一個 section 垂直堆疊', async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockFullDragonboard() });
+  test('AC-2: 球員名單 tab → 6 隊各一個 section', async ({ page }) => {
     await page.goto('roster');
 
     const sections = page.locator('[data-testid="roster-team-section"]');
     await expect(sections).toHaveCount(6);
-
-    // 驗證隊伍名稱均可見
-    for (const teamName of ['紅隊', '黑隊', '藍隊', '綠隊', '黃隊', '白隊']) {
-      await expect(page.locator('[data-testid="roster-team-section"]').filter({ hasText: teamName })).toBeVisible();
-    }
   });
 
-  // ────── AC-3: 球員名字 + 10 色塊 ──────
   test('AC-3: 每球員顯示名字 + 10 個出席色塊', async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockFullDragonboard() });
     await page.goto('roster');
 
-    // 第一位球員（韋承志，紅隊）
     const firstPlayer = page.locator('[data-testid="roster-player-row"]').first();
+    await expect(firstPlayer).toBeVisible();
     await expect(firstPlayer.locator('[data-testid="player-name"]')).toBeVisible();
 
-    // 每位球員應有 10 個色塊
     const attBlocks = firstPlayer.locator('[data-testid="att-block"]');
     await expect(attBlocks).toHaveCount(10);
   });
-
-  // ────── AC-4: 色塊樣式 ──────
-  test('AC-4a: att=1 → 色塊含文字「1」', async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockFullDragonboard() });
-    await page.goto('roster');
-
-    // 韋承志前 6 週全部出席，第一個色塊應顯示「1」
-    const firstBlock = page.locator('[data-testid="roster-player-row"]').first().locator('[data-testid="att-block"]').first();
-    await expect(firstBlock).toHaveText('1');
-    await expect(firstBlock).toHaveAttribute('data-att', '1');
-  });
-
-  test('AC-4b: att=0 → 色塊含文字「0」（含 data-att="0"）', async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockFullDragonboard() });
-    await page.goto('roster');
-
-    // 吳軒宇第 2 週缺席（att=0）
-    const row = page.locator('[data-testid="roster-player-row"]').filter({ hasText: '吳軒宇' });
-    const zeroBlock = row.locator('[data-testid="att-block"][data-att="0"]').first();
-    await expect(zeroBlock).toHaveText('0');
-  });
-
-  test('AC-4c: att="x" → 色塊含文字「x」（含 data-att="x"）', async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockFullDragonboard() });
-    await page.goto('roster');
-
-    // 蔡一聲第 6 週為 "x"
-    const row = page.locator('[data-testid="roster-player-row"]').filter({ hasText: '蔡一聲' });
-    const xBlock = row.locator('[data-testid="att-block"][data-att="x"]').first();
-    await expect(xBlock).toHaveText('x');
-  });
-
-  test('AC-4d: att="?" → 色塊含文字「?」（含 data-att="?"）', async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockFullDragonboard() });
-    await page.goto('roster');
-
-    // 任一球員後 4 週為 "?"
-    const firstRow = page.locator('[data-testid="roster-player-row"]').first();
-    const qBlock = firstRow.locator('[data-testid="att-block"][data-att="?"]').first();
-    await expect(qBlock).toHaveText('?');
-  });
-
-  // ────── AC-18: att 全 "?" ──────
-  test('AC-18: att 全 "?" → 10 個灰色虛框色塊，頁面不報錯', async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockRosterAllQuestions(), dragon: mockEmptyDragonboard() });
-    await page.goto('roster');
-
-    const firstRow = page.locator('[data-testid="roster-player-row"]').first();
-    const attBlocks = firstRow.locator('[data-testid="att-block"]');
-    await expect(attBlocks).toHaveCount(10);
-
-    // 全部 data-att="?"
-    const counts = await attBlocks.evaluateAll((els) =>
-      els.filter((el) => el.getAttribute('data-att') === '?').length,
-    );
-    expect(counts).toBe(10);
-  });
 });
 
-// ══════════════════════════════════════════════════════
-// E-901, E-902: 龍虎榜 hero subtitle + chips（B-11.1, B-11.2）
-// 注意：B-11 subtitle / chips 僅在 /roster?tab=dragon 時顯示，
-// 由 RosterHero 接收 activeTab prop 後條件渲染（TDD — 實作者需添加）
-// ══════════════════════════════════════════════════════
-test.describe('Roster Hero — 龍虎榜 tab subtitle + chips @roster @dragon @issue-14 @hero', () => {
-  // E-901 (B-11.1): hero subtitle 在 dragon tab 含選秀說明文字
-  test('E-901: /roster?tab=dragon → hero subtitle 含「活躍度積分累計 · 決定下賽季選秀順位」', { tag: ['@roster', '@dragon', '@issue-14', '@hero'] }, async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockDragonWithRulesLink() });
-    const dragonResponse = page.waitForResponse(/dragon\.json/);
+test.describe('Roster Hero — 龍虎榜 tab subtitle + chips', () => {
+  test('E-901: /roster?tab=dragon → hero subtitle 含「活躍度積分累計 · 決定下賽季選秀順位」', async ({ page }) => {
     await page.goto('roster?tab=dragon');
-    await dragonResponse;
 
-    // UI 結構：hero subtitle 可見
     const subtitle = page.locator('[data-testid="hero-subtitle"]');
     await expect(subtitle).toBeVisible();
-
-    // 互動層：dragon tab 啟用中，subtitle 顯示龍虎榜專屬文案
     await expect(page.locator('[data-testid="sub-tab"][data-tab="dragon"]')).toHaveAttribute('aria-selected', 'true');
 
-    // 資料驗證：含選秀說明
     await expect(subtitle).toContainText('活躍度積分累計');
     await expect(subtitle).toContainText('決定下賽季選秀順位');
   });
 
-  // E-902 (B-11.2): hero 三個 chip 在 dragon tab 顯示
-  test('E-902: /roster?tab=dragon → hero 顯示「平民區」「奴隸區」「⚠ 季後賽加分於賽季結束後計入」三個 chip', { tag: ['@roster', '@dragon', '@issue-14', '@hero'] }, async ({ page }) => {
-    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockDragonWithRulesLink() });
-    const dragonResponse = page.waitForResponse(/dragon\.json/);
+  test('E-902: /roster?tab=dragon → hero 顯示三個 chip', async ({ page }) => {
     await page.goto('roster?tab=dragon');
-    await dragonResponse;
 
-    // UI 結構：三個 chip 可見
     await expect(page.locator('[data-testid="hero-chip-civilian"]')).toBeVisible();
     await expect(page.locator('[data-testid="hero-chip-slave"]')).toBeVisible();
     await expect(page.locator('[data-testid="hero-chip-playoff-note"]')).toBeVisible();
 
-    // 互動層：chip 文字正確
     await expect(page.locator('[data-testid="hero-chip-civilian"]')).toContainText('平民區');
     await expect(page.locator('[data-testid="hero-chip-slave"]')).toContainText('奴隸區');
     await expect(page.locator('[data-testid="hero-chip-playoff-note"]')).toContainText('⚠');
     await expect(page.locator('[data-testid="hero-chip-playoff-note"]')).toContainText('季後賽加分於賽季結束後計入');
 
-    // 資料驗證：chips 在 dragon tab 啟用時才顯示（roster tab 不顯示）
+    // chips 切回 roster tab 後消失
     await page.locator('[data-testid="sub-tab"][data-tab="roster"]').click();
     await expect(page.locator('[data-testid="hero-chip-civilian"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="hero-chip-slave"]')).toHaveCount(0);

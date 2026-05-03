@@ -119,3 +119,81 @@ describe('api.ts standings matrix (integration)', () => {
     expect(result.data?.matrix).toBeUndefined();
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Issue #17 Task 1: Sheets path 也回 season/phase/currentWeek（matrix 仍由 static fallback 補）
+// ─────────────────────────────────────────────────────────────────────────────
+describe('api.ts standings Sheets path 也回 season/phase/currentWeek (Issue #17)', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    // Sheets 環境齊全 → 走 Sheets path
+    vi.stubEnv('PUBLIC_SHEET_ID', 'TEST_SHEET');
+    vi.stubEnv('PUBLIC_SHEETS_API_KEY', 'TEST_KEY');
+  });
+
+  afterEach(() => {
+    globalThis.fetch = ORIG_FETCH;
+    vi.unstubAllEnvs();
+  });
+
+  it('fetchData(standings) Sheets path 回傳含 season/phase/currentWeek (Covers: I-1)', async () => {
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url);
+      if (u.includes('sheets.googleapis.com')) {
+        return new Response(
+          JSON.stringify({
+            valueRanges: [
+              { range: 'datas!P2:T7', values: [['紅', '15', '5', '75.0%', '8連勝']] },
+              { range: 'datas!D2:M7', values: [['季後賽'], ['13']] },
+            ],
+          }),
+          { status: 200 },
+        );
+      }
+      throw new Error(`unexpected: ${u}`);
+    }) as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    type R = {
+      teams: { team: string; wins: number }[];
+      season: number;
+      phase: string;
+      currentWeek: number;
+    };
+    const result = await fetchData<R>('standings');
+    expect(result.source).toBe('sheets');
+    expect(result.data?.season).toBe(25);
+    expect(result.data?.phase).toBe('季後賽');
+    expect(result.data?.currentWeek).toBe(13);
+    expect(result.data?.teams).toHaveLength(1);
+    expect(result.data?.teams[0]).toMatchObject({ team: '紅', wins: 15 });
+  });
+
+  it('fetchData(standings) Sheets path 透過 batchGet URL 同時要 P2:T7 + D2:M7 (Covers: I-1)', async () => {
+    const fetchSpy = vi.fn(async (url: string | URL | Request) => {
+      const u = String(url);
+      if (u.includes('sheets.googleapis.com')) {
+        return new Response(
+          JSON.stringify({
+            valueRanges: [
+              { range: 'datas!P2:T7', values: [] },
+              { range: 'datas!D2:M7', values: [['例行賽'], ['5']] },
+            ],
+          }),
+          { status: 200 },
+        );
+      }
+      throw new Error(`unexpected: ${u}`);
+    });
+    globalThis.fetch = fetchSpy as unknown as typeof fetch;
+
+    const { fetchData } = await import('../../src/lib/api');
+    await fetchData('standings');
+
+    // 驗 batchGet URL 同時 encode 兩個 ranges
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0] ?? '');
+    expect(calledUrl).toContain('ranges=');
+    expect(decodeURIComponent(calledUrl)).toContain('datas!P2:T7');
+    expect(decodeURIComponent(calledUrl)).toContain('datas!D2:M7');
+  });
+});
