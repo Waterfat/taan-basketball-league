@@ -1,32 +1,46 @@
-# 測試環境清單（qa-v2 必要產物）
-# 提供 qa-v2 / pm-v2 判斷各環境的測試端點
+# 測試環境清單（qa-v2 / ops-v2 必要產物）
+# 提供 qa-v2 / pm-v2 判斷各環境的測試端點、安全規則、測試帳號
 
+# ── 全域（不隨環境變）────────────────────────────────────────────
+project: taan-basketball-league
+services: [web]                          # 純前端 Astro，無 multi-portal
+tools:
+  e2e: playwright
+  e2e_mcp: playwright-mcp
+  integration: vitest
+  unit: vitest
+
+# ── 各環境 ──────────────────────────────────────────────────────
+# 注意：本專案無 uat 環境（CLAUDE.md 註明），prod 為唯一部署目標。
+# qa-v2 Phase 6 找不到 uat 條目時應回傳 BLOCKED，不可逕用 prod 替代。
 environments:
-  dev:
-    url: http://localhost:4321
-    description: 本地開發（Astro Vite HMR）
-    auth_required: false
-    notes: |
-      啟動：npm run dev
-      預設 port 4321
+  local:
+    urls:
+      web: http://localhost:4321
+    can_destroy_data: true
+    requires_real_money: false
+    test_accounts: null                  # 純展示型網站，無使用者帳號
+    notes: "啟動：npm run dev（Astro Vite HMR，預設 port 4321）"
 
   prod:
-    url: https://waterfat.github.io/taan-basketball-league/
-    description: GitHub Pages
-    auth_required: false
-    notes: |
-      push main → GitHub Actions build → 推 gh-pages branch → Pages serve
-      base URL 包含 repo name 子路徑
+    urls:
+      web: https://waterfat.github.io/taan-basketball-league/
+    can_destroy_data: false              # 資料源為 prod Google Sheets，不可由測試寫入
+    requires_real_money: false
+    forbidden_tests:
+      - "資料寫入 / 修改（Google Sheets 由賽務同仁人工維護）"
+    test_accounts: null
+    notes: "GitHub Pages（push main → Actions build → gh-pages 部署），base URL 含 repo 子路徑"
 
-# 第三方依賴端點
+# ── 第三方依賴端點 ──────────────────────────────────────────────
 external:
   google_sheets_api:
     url: https://sheets.googleapis.com/v4/spreadsheets/{SHEET_ID}/values:batchGet
-    description: Google Sheets API v4（球員/賽程/戰績/龍虎榜資料來源，瀏覽器直打）
-    fallback: data/*.json
+    description: Google Sheets API v4（球員 / 賽程 / 戰績 / 龍虎榜資料源，瀏覽器直打）
+    fallback: public/data/*.json
     notes: 認證走 ?key= API key（HTTP referrer 限制 + 限定 Sheets API v4）；瀏覽器內 5 分鐘 cache
 
-# 環境變數清單（qa-v2 / ops-v2 讀取）
+# ── 環境變數清單 ──────────────────────────────────────────────────
 env_vars:
   PUBLIC_SHEET_ID:
     purpose: Google Sheets spreadsheet ID（直接打 Sheets API v4 用）
@@ -51,17 +65,3 @@ env_vars:
       test: vi.stubEnv('PUBLIC_SHEETS_API_KEY', 'TEST_API_KEY') 於 integration test beforeEach
       build: .github/workflows/*.yml build job env
     required_for: [dev, test, build, deploy]
-
-# 測試覆蓋目標
-coverage:
-  unit:
-    target: 70%
-    framework: Vitest
-    location: tests/unit/
-  e2e:
-    framework: Playwright
-    location: tests/e2e/
-    projects:
-      - regression（無認證、未登入行為）
-      - regression-mobile（手機版視窗）
-      - features（保留給未來會員 / 動態功能）
