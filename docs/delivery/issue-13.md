@@ -124,3 +124,45 @@
 | Sheets API path 驗證 | ✅ build bundle inline `sheets.googleapis.com` URL + SHEET_ID |
 | 額外清理 | ✅ commit `8ae7041` 移除 workflow 過時 `PUBLIC_GAS_WEBAPP_URL` env line |
 
+## Phase 6 E2E 驗收
+
+**環境**：Production（https://waterfat.github.io/taan-basketball-league/）
+**執行時間**：2026-05-03 TST
+**整體結果**：✅ 全通過
+
+| # | 案例集 | 結果 | 備註 |
+|---|--------|------|------|
+| 1 | regression（boxscore + schedule × desktop + mobile）| ✅ 12/12 | 全綠 |
+| 2 | features/standings.spec.ts（含 E-5 「最近 6 場」○✕）| ✅ 50/50（2 skip）| A2 順帶驗收 PASS |
+| 3 | features/data-fallback.spec.ts（E-4, E-7）| ✅ 8/8 | 修 4 個 test-time bug（mock pattern + locator strict-mode）→ commit `3b4a5ad` |
+| 4 | features/boxscore/boxscore-tab/game-cards.spec.ts（含 E-6 「逐場 Box」）| ✅ 6/6 | **A3 在 prod 實際正常**！T7 之前 FAIL 是 dev 缺 env 的測試問題 |
+
+### 驚喜結論
+
+Issue #13 的範圍**比預期更大**：A1（資料源）+ A2（最近 6 場）+ A3（逐場 Box）三個子問題都修好了。原本標記「A3 元件渲染待另開 issue」，prod 部署後驗證實際已 work（boxscore-api.ts 在 prod 有 PUBLIC_SHEET_ID + PUBLIC_SHEETS_API_KEY env，工作正常）。
+
+**「待開 follow-up issues」中 #1 (A3 元件渲染) 可移除**，僅剩 #2（home/schedule/roster/leaders 完整 Sheets composite transformer）需後續處理。
+
+## Metrics
+
+```yaml
+issue: 13
+completed_at: 2026-05-03T19:46:42+08:00
+duration_estimate: 5h 7m
+issue_type: fix
+phase1_retries: 0
+phase2_retries: 1
+blocked_count: 0
+phase3_retries: 0
+phase4_conflicts: 0
+phase5_retries: 0
+phase5_env_issues: 0
+phase6_retries: 0
+phase6_unrelated_failures: 4
+anomalous_dispatches:
+  - "T2/T6 parallel race: commits merged into 2b0d7a5"
+smoothness: 1
+```
+
+> smoothness=1 因 phase6_unrelated_failures=4（4 個 E2E test bug：mock pattern obsolete + locator strict-mode）。實際工作品質高，這 4 個都是 test-time 品質問題、非源頭 bug，已於 commit `3b4a5ad` 修完。
+
