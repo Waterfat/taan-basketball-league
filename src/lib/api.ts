@@ -12,12 +12,8 @@
  */
 
 import {
-  transformHome,
   transformStandings,
   transformDragon,
-  transformSchedule,
-  transformRoster,
-  transformLeaders,
   type SheetsValueRange,
 } from './api-transforms';
 import { getCached, setCache } from './api-cache';
@@ -48,17 +44,26 @@ interface FetchResult<T> {
 /**
  * 各 DataKind 對應的 Sheets ranges（從舊 js/api.js sheetsRanges 移植）
  *
- * 4 個無 ranges 的 kind（boxscore / stats / rotation / hof）走 fallback static JSON：
+ * 本 Issue 完整啟用 Sheets path 的 kind（transformer 完整、單一 range）：
+ *   - standings：6 隊戰績
+ *   - dragon：龍虎榜
+ *
+ * 暫走 static fallback 的 kind（後續 Issue 補完整 transformer 後啟用 Sheets）：
+ *   - home：HomeData 為多 range composite（meta + standings + dragon + miniStats），
+ *           需重組合 + history 計算 + miniStats 從 stats range 取，本 Issue 不處理
+ *   - schedule / roster / leaders：transformer 為 stub
+ *
+ * 純 static 的 kind（無 Sheets path，nothing to do）：
  *   - boxscore：已有獨立模組 src/lib/boxscore-api.ts 處理
  *   - stats / rotation / hof：純靜態資料
  */
 const SHEETS_RANGES: Record<DataKind, string[]> = {
-  home: ['datas!D2:M7'],
-  dragon: ['datas!D13:L76'],
   standings: ['datas!P2:T7'],
-  roster: ['datas!O19:AH83'],
-  schedule: ['datas!P13:AG13', 'datas!D87:N113', 'datas!D117:F206'],
-  leaders: ['datas!D212:N224', 'datas!D227:K234', 'datas!D237:K244', 'datas!D247:K254'],
+  dragon: ['datas!D13:L76'],
+  home: [], // reason: composite transformer pending（多 range + history + miniStats）→ 後續 issue
+  schedule: [], // reason: transformSchedule 為 stub
+  roster: [], // reason: transformRoster 為 stub
+  leaders: [], // reason: transformLeaders 為 stub
   boxscore: [],
   stats: [],
   rotation: [],
@@ -66,12 +71,8 @@ const SHEETS_RANGES: Record<DataKind, string[]> = {
 };
 
 const TRANSFORMERS: Partial<Record<DataKind, (r: SheetsValueRange[]) => unknown>> = {
-  home: transformHome,
   standings: transformStandings,
   dragon: transformDragon,
-  schedule: transformSchedule,
-  roster: transformRoster,
-  leaders: transformLeaders,
 };
 
 /**
