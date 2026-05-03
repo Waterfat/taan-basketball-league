@@ -95,10 +95,11 @@ export function transformHome(ranges: SheetsValueRange[]): HomeData {
       total: parseInt(row[6] ?? '0', 10) || 0,
     }));
 
+  // reason: 真實 Sheets row[0]="平均X"（非「X」）；UI label 維持簡稱
   const miniStats = {
-    pts: { label: '得分', unit: 'PPG', players: extractMiniPlayers(leadersRows, '得分') },
-    reb: { label: '籃板', unit: 'RPG', players: extractMiniPlayers(leadersRows, '籃板') },
-    ast: { label: '助攻', unit: 'APG', players: extractMiniPlayers(leadersRows, '助攻') },
+    pts: { label: '得分', unit: 'PPG', players: extractMiniPlayers(leadersRows, '平均得分') },
+    reb: { label: '籃板', unit: 'RPG', players: extractMiniPlayers(leadersRows, '平均籃板') },
+    ast: { label: '助攻', unit: 'APG', players: extractMiniPlayers(leadersRows, '平均助攻') },
   };
 
   return {
@@ -213,19 +214,26 @@ export function transformDragon(ranges: SheetsValueRange[]): DragonData {
   const metaRows = ranges[1]?.values ?? [];
   const thresholdCell = ranges[2]?.values?.[0]?.[0];
 
+  // reason: 真實 Sheets row[0]=rank, row[1]="名字(色"（GAS 合併寫法），需拆 name + team
   const players = playerRows
-    .filter((row) => row[0])
-    .map((row, idx) => ({
-      rank: idx + 1,
-      name: row[0] ?? '',
-      team: row[1] ?? '',
-      tag: null,
-      att: parseInt(row[2] ?? '0', 10) || 0,
-      duty: parseInt(row[3] ?? '0', 10) || 0,
-      mop: parseInt(row[4] ?? '0', 10) || 0,
-      playoff: row[5] === '—' ? null : parseInt(row[5] ?? '0', 10) || 0,
-      total: parseInt(row[6] ?? '0', 10) || 0,
-    }));
+    .filter((row) => row[1])
+    .map((row) => {
+      const rawNameTeam = row[1] ?? '';
+      const m = rawNameTeam.match(/^(.+?)\(([^)]+)/);
+      const name = m ? m[1].trim() : rawNameTeam.trim();
+      const team = m ? m[2].trim() : '';
+      return {
+        rank: parseInt(row[0] ?? '0', 10) || 0,
+        name,
+        team,
+        tag: null,
+        att: parseInt(row[2] ?? '0', 10) || 0,
+        duty: parseInt(row[3] ?? '0', 10) || 0,
+        mop: parseInt(row[4] ?? '0', 10) || 0,
+        playoff: row[5] === '—' ? null : parseInt(row[5] ?? '0', 10) || 0,
+        total: parseInt(row[6] ?? '0', 10) || 0,
+      };
+    });
 
   const parsedThreshold =
     thresholdCell !== undefined && thresholdCell !== ''
@@ -418,20 +426,21 @@ function parseAttCell(v: string | undefined | null): AttValue {
  */
 
 /** 個人類別中文 → LeaderSeason 欄位名 */
+// reason: 真實 Sheets row[0] 用「平均X」+「兩/三分球命中率」+「EFF」（非 agent 假設的「X / 2P% / 效率值」）
 const CATEGORY_MAP: Record<string, keyof Pick<LeaderSeason,
   'scoring' | 'rebound' | 'assist' | 'steal' | 'block' | 'eff' |
   'turnover' | 'foul' | 'p2pct' | 'p3pct' | 'ftpct'>> = {
-  '得分': 'scoring',
-  '籃板': 'rebound',
-  '助攻': 'assist',
-  '抄截': 'steal',
-  '阻攻': 'block',
-  '效率值': 'eff',
-  '失誤': 'turnover',
-  '犯規': 'foul',
-  '2P%': 'p2pct',
-  '3P%': 'p3pct',
-  'FT%': 'ftpct',
+  '平均得分': 'scoring',
+  '平均籃板': 'rebound',
+  '平均助攻': 'assist',
+  '平均抄截': 'steal',
+  '平均阻攻': 'block',
+  'EFF': 'eff',
+  '平均失誤': 'turnover',
+  '平均犯規': 'foul',
+  '兩分球命中率': 'p2pct',
+  '三分球命中率': 'p3pct',
+  '罰球命中率': 'ftpct',
 };
 
 export function transformLeaders(ranges: SheetsValueRange[]): LeaderData {

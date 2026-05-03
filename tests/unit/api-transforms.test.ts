@@ -106,9 +106,9 @@ describe('transformHome (Issue #17)', () => {
       {
         range: 'datas!D212:N224',
         values: [
-          ['得分', '王', '紅', '20.5'],
-          ['籃板', '李', '黑', '12.3'],
-          ['助攻', '陳', '綠', '8.1'],
+          ['平均得分', '王', '紅', '20.5'],
+          ['平均籃板', '李', '黑', '12.3'],
+          ['平均助攻', '陳', '綠', '8.1'],
         ],
       },
     ];
@@ -232,7 +232,7 @@ describe('transformDragon', () => {
 
   it('parse 1 row → 1 player', () => {
     const ranges: SheetsValueRange[] = [
-      { range: 'datas!D13:L76', values: [['李子昂', '黑', '20', '10', '1', '—', '31', '', '']] },
+      { range: 'datas!D13:L76', values: [['1', '李子昂(黑', '20', '10', '1', '—', '31', '', '']] },
     ];
     const result = transformDragon(ranges);
     expect(result.players).toHaveLength(1);
@@ -256,8 +256,8 @@ describe('transformDragon (Issue #17)', () => {
       {
         range: 'datas!D13:L76',
         values: [
-          ['李子昂', '黑', '20', '10', '1', '—', '31', '', ''],
-          ['吳家豪', '綠', '6', '6', '0', '—', '12', '', ''],
+          ['1', '李子昂(黑', '20', '10', '1', '—', '31', '', ''],
+          ['2', '吳家豪(綠', '6', '6', '0', '—', '12', '', ''],
         ],
       },
       { range: 'datas!D2:M7', values: [['例行賽'], ['10']] },
@@ -274,7 +274,7 @@ describe('transformDragon (Issue #17)', () => {
 
   it('threshold cell 缺失 → civilianThreshold 沿用預設 36（向後相容）(Covers: I-2)', () => {
     const ranges: SheetsValueRange[] = [
-      { range: 'datas!D13:L76', values: [['李', '黑', '5', '0', '0', '—', '5', '', '']] },
+      { range: 'datas!D13:L76', values: [['1', '李(黑', '5', '0', '0', '—', '5', '', '']] },
     ];
     const result = transformDragon(ranges);
     expect(result.civilianThreshold).toBe(36);
@@ -429,10 +429,10 @@ describe('transformLeaders (Issue #17)', () => {
       {
         range: 'datas!D212:N224',
         values: [
-          ['得分', '王', '紅', '20.5'],
-          ['得分', '李', '黑', '18.2'],
-          ['籃板', '陳', '綠', '12.3'],
-          ['助攻', '林', '黃', '8.1'],
+          ['平均得分', '王', '紅', '20.5'],
+          ['平均得分', '李', '黑', '18.2'],
+          ['平均籃板', '陳', '綠', '12.3'],
+          ['平均助攻', '林', '黃', '8.1'],
         ],
       },
       // teamOffense: 6 隊
