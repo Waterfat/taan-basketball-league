@@ -1,33 +1,39 @@
 # 第三方整合
 
-## Google Apps Script Webapp（主資料源）
+## Google Sheets API（直打）
 
-| 欄位 | 內容 |
-|------|------|
-| 用途 | 球員 / 賽程 / 戰績 / 統計資料的中央資料源 |
-| 文件 | <https://developers.google.com/apps-script/guides/web> |
-| 程式碼 | `gas/Code.gs`（本 repo 內，獨立部署到 Google Apps Script） |
-| 費用 | 免費 |
-| 部署方式 | Apps Script Editor → 部署 → 新增部署 → Web App → 任何人可存取 |
-| 部署後產出 | `https://script.google.com/macros/s/{DEPLOY_ID}/exec` |
-| 寫入 .env | `PUBLIC_GAS_WEBAPP_URL` |
-| 限制 | GAS daily quota：20,000 calls/day（已知），URLFetch 限 100,000/day |
-| Fallback | 失敗時讀 `public/data/*.json` |
-| 改動流程 | 改 `gas/Code.gs` → Apps Script Editor 貼上 → 重新部署（產生新版本） |
+新版 v2（Issue #13）後，前端直接打 Google Sheets API v4，移除原 GAS Webapp 中介層。
 
-### 為什麼選 GAS
+| 項目 | 值 |
+|------|---|
+| Endpoint | `https://sheets.googleapis.com/v4/spreadsheets/{ID}/values:batchGet` |
+| 認證 | API key 走 `?key=` query param |
+| 環境變數 | `PUBLIC_SHEET_ID`, `PUBLIC_SHEETS_API_KEY` |
+| Cache | 瀏覽器 in-memory，TTL 5 分鐘（`src/lib/api-cache.ts`）|
+| Fallback | `public/data/<kind>.json` 靜態檔 |
+| 安全 | API key 在 GCP Console 設 HTTP referrer 限制（`https://waterfat.github.io/*`、`http://localhost:4321/*`）+ API 限制（只開 Sheets API v4）|
+| 資料層程式 | `src/lib/api.ts` + `src/lib/api-cache.ts` + `src/lib/api-transforms.ts` |
 
-- 球賽資料統一由聯盟管理員在 Google Sheets 維護，無需另建後端
-- 公開讀取無需認證，符合靜態網站需求
-- 完全免費，daily quota 對社區聯盟綽綽有餘
+### 為什麼直打 Sheets API（取代 GAS）
 
-### 重新部署檢查
+- 移除 GAS Webapp 中介層，少一個部署點，少一層延遲
+- 瀏覽器內 5 分鐘 cache 已涵蓋常見讀取模式
+- API key + HTTP referrer 限制即可滿足公開讀取的安全需求
+- daily quota（Sheets API 100/min/user，500/100s/project）對社區聯盟流量綽綽有餘
 
-每次改 `gas/Code.gs` 後：
-1. 在 Apps Script Editor 選「管理部署」
-2. 編輯 active deployment → 版本選「新版本」
-3. 部署後**保留同一個 URL**（不會變）
-4. 本地 `.env.local` 不需改
+### 設定步驟
+
+1. Google Cloud Console → APIs & Services → Credentials → 建立 API Key
+2. 「應用程式限制」設為「HTTP referrer」，加入：
+   - `https://waterfat.github.io/*`
+   - `http://localhost:4321/*`
+3. 「API 限制」勾選 Google Sheets API
+4. 將 Spreadsheet 共用權限設為「知道連結的人 — 檢視者」
+5. 把 SHEET_ID + API_KEY 寫入 `.env.local`（dev）與 GitHub Actions secrets / vars（prod）
+
+### 歷史參考
+
+`gas/Code.gs`、`gas/SETUP.md`、`gas/DATA_SOURCE_CHECKLIST.md` 仍保留在 repo 內當歷史參考，不再實際部署。
 
 ## 未來可能整合（已記錄不 scaffold）
 

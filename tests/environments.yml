@@ -20,25 +20,37 @@ environments:
 
 # 第三方依賴端點
 external:
-  google_sheets_webapp:
-    url: https://script.google.com/macros/s/{DEPLOY_ID}/exec
-    description: Google Apps Script webapp（球員/賽程/戰績資料來源）
+  google_sheets_api:
+    url: https://sheets.googleapis.com/v4/spreadsheets/{SHEET_ID}/values:batchGet
+    description: Google Sheets API v4（球員/賽程/戰績/龍虎榜資料來源，瀏覽器直打）
     fallback: data/*.json
-    notes: 改 gas/Code.gs 後需手動重新部署 GAS
+    notes: 認證走 ?key= API key（HTTP referrer 限制 + 限定 Sheets API v4）；瀏覽器內 5 分鐘 cache
 
 # 環境變數清單（qa-v2 / ops-v2 讀取）
 env_vars:
-  PUBLIC_GAS_WEBAPP_URL:
-    purpose: Google Apps Script webapp URL，api.ts 三層 fallback 的第一層
-    used_by: [src/lib/api.ts]
+  PUBLIC_SHEET_ID:
+    purpose: Google Sheets spreadsheet ID（直接打 Sheets API v4 用）
+    used_by: [src/lib/api.ts, src/lib/boxscore-api.ts]
     sources:
       acc_pw_section: taan-basketball-league
       ci: gh variable (vars)
     inject_at:
-      dev: .env.local（可留空，api.ts 偵測 placeholder 後自動 fallback JSON）
-      test: vi.stubEnv('PUBLIC_GAS_WEBAPP_URL', ...) 於各 integration test beforeEach
+      dev: .env.local
+      test: vi.stubEnv('PUBLIC_SHEET_ID', 'TEST_SHEET_ID') 於 integration test beforeEach
       build: .github/workflows/*.yml build job env
-    required_for: [build, deploy]
+    required_for: [dev, test, build, deploy]
+
+  PUBLIC_SHEETS_API_KEY:
+    purpose: Google Sheets API key（v4 values.get / values:batchGet 認證）
+    used_by: [src/lib/api.ts, src/lib/boxscore-api.ts]
+    sources:
+      acc_pw_section: taan-basketball-league
+      ci: gh secret
+    inject_at:
+      dev: .env.local
+      test: vi.stubEnv('PUBLIC_SHEETS_API_KEY', 'TEST_API_KEY') 於 integration test beforeEach
+      build: .github/workflows/*.yml build job env
+    required_for: [dev, test, build, deploy]
 
 # 測試覆蓋目標
 coverage:
