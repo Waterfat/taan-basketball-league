@@ -101,3 +101,26 @@
 - **T1（5）**：integration test 間接覆蓋的 api.ts 內部 helper → `isSheetsConfigured`, `buildBatchUrl`, `fetchFromSheets`, `fetchFromStatic`, `fetchData`
 - **T2（5）**：tests/ 底下 test infrastructure → `mockLeadersAPI`, `mockKindAPI`, `mockSheets`, `readFile`, `mockSheetsBatch`
 
+## Phase 4 程式碼交付
+
+- [x] 4.1 commit + push feat/13-fix-data-pipeline（10 commits）
+- [x] 4.2 PR #15 建立 → https://github.com/Waterfat/taan-basketball-league/pull/15
+- [x] 4.3 rebase merge → main 同步
+
+**Merge commit**：見 GitHub PR #15
+**Local feature branch**：暫未刪（worktree 還在用），Phase 6.3 cleanup-worktree 時一併處理
+
+## Phase 5 部署記錄
+
+**環境**：Production（GitHub Pages）
+**部署時間**：2026-05-03 TST
+**ops-health**：跳過（`docs/ops/deploy-config.yml` 設 `monitoring: false`）
+
+| 步驟 | 結果 |
+|------|------|
+| env 同步 | ✅ 跳過（PUBLIC_SHEET_ID + PUBLIC_SHEETS_API_KEY 已在 vars + workflow inject）|
+| CI / deploy | ✅ Run #25273085618（2m17s success，含 Issue #13 全部變更）|
+| 站台健康 | ✅ HTTP 200（`/`、`/standings/`、`/roster/`）|
+| Sheets API path 驗證 | ✅ build bundle inline `sheets.googleapis.com` URL + SHEET_ID |
+| 額外清理 | ✅ commit `8ae7041` 移除 workflow 過時 `PUBLIC_GAS_WEBAPP_URL` env line |
+
