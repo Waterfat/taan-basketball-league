@@ -5,7 +5,7 @@ import { SkeletonState } from './SkeletonState';
 import { ErrorState } from './ErrorState';
 import { EmptyState } from './EmptyState';
 import { HeroBanner } from './HeroBanner';
-import { ScheduleBlock } from './ScheduleBlock';
+import { MatchupsBlock } from './MatchupsBlock';
 import { MiniStandings } from './MiniStandings';
 import { MiniLeaders } from './MiniLeaders';
 import { MiniDragon } from './MiniDragon';
@@ -66,7 +66,11 @@ export function HomeDashboard({ baseUrl }: Props) {
         currentWeek={data.currentWeek}
       />
 
-      <ScheduleBlock scheduleInfo={data.scheduleInfo} baseUrl={baseUrl} />
+      <MatchupsBlock
+        weekMatchups={data.weekMatchups}
+        scheduleInfo={data.scheduleInfo}
+        baseUrl={baseUrl}
+      />
 
       <MiniLeaders miniStats={data.miniStats} baseUrl={baseUrl} />
 

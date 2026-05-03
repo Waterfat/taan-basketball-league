@@ -3,6 +3,7 @@
   "phase": "賽季進行中",
   "civilianThreshold": 36,
   "columns": ["出席", "輪值", "拖地", "季後賽"],
+  "rulesLink": "https://example.com/rules",
   "players": [
     { "rank": 1,  "name": "韋承志", "team": "紅", "tag": "裁", "att": 8, "duty": 8, "mop": 0, "playoff": null, "total": 16 },
     { "rank": 2,  "name": "吳家豪", "team": "綠", "tag": null,  "att": 6, "duty": 6, "mop": 0, "playoff": null, "total": 12 },

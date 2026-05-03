@@ -7,6 +7,7 @@ import { ErrorState } from './ErrorState';
 import { EmptyState } from './EmptyState';
 import { StandingsHero } from './StandingsHero';
 import { StandingsCard, StandingsTableRow } from './StandingsRow';
+import { StandingsMatrix } from './StandingsMatrix';
 
 type Status = 'loading' | 'error' | 'empty' | 'ok';
 
@@ -53,7 +54,16 @@ export function StandingsApp({ baseUrl }: Props) {
   }, []);
 
   if (status === 'loading') return <SkeletonState />;
-  if (status === 'error') return <ErrorState onRetry={handleRetry} />;
+  if (status === 'error') {
+    // wrapper 加上 data-testid="matrix-error" 讓 standings-matrix.spec E-205-error
+    // 的 selector `[data-testid="matrix-error"], [data-testid="error-state"]` 命中。
+    // 既有 standings.spec AC-11 用 getByText / getByRole 不受影響。
+    return (
+      <div data-testid="matrix-error">
+        <ErrorState onRetry={handleRetry} />
+      </div>
+    );
+  }
   if (status === 'empty' || !data) return <EmptyState baseUrl={baseUrl} />;
 
   const teams = sortStandings(data.teams);
@@ -90,6 +100,9 @@ export function StandingsApp({ baseUrl }: Props) {
           </tbody>
         </table>
       </section>
+
+      {/* 對戰勝敗矩陣（Issue #14 Task 5）：僅在 ok state 且 matrix 存在時渲染 */}
+      {data.matrix && <StandingsMatrix matrix={data.matrix} />}
     </div>
   );
 }

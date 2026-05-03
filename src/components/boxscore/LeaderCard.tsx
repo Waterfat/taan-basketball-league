@@ -1,17 +1,14 @@
 // src/components/boxscore/LeaderCard.tsx
 import type { LeaderCategory, LeaderEntry } from '../../types/leaders';
 import { getTeam } from '../../config/teams';
-import { formatScoringAdvanced, formatReboundAdvanced } from '../../lib/leaders-format';
+import {
+  CATEGORY_TITLES,
+  formatScoringAdvanced,
+  formatReboundAdvanced,
+  formatPercentageVal,
+  isPercentageCategory,
+} from '../../lib/leaders-format';
 import { LeadersEmpty } from './LeadersEmpty';
-
-const CATEGORY_TITLES: Record<LeaderCategory, string> = {
-  scoring: '得分王',
-  rebound: '籃板王',
-  assist: '助攻王',
-  steal: '抄截王',
-  block: '阻攻王',
-  eff: '效率王',
-};
 
 interface Props {
   category: LeaderCategory;
@@ -41,6 +38,9 @@ export function LeaderCard({ category, entries }: Props) {
                 : category === 'rebound'
                   ? formatReboundAdvanced(e)
                   : null;
+            const formattedVal = isPercentageCategory(category)
+              ? formatPercentageVal(e.val)
+              : e.val.toFixed(2);
             return (
               <li
                 key={`${rank}-${e.name}`}
@@ -58,7 +58,7 @@ export function LeaderCard({ category, entries }: Props) {
                 />
                 <span data-testid="leader-name" className="flex-1 text-txt-dark">{e.name}</span>
                 <span data-testid="leader-val" className="font-condensed font-bold text-orange">
-                  {e.val.toFixed(2)}
+                  {formattedVal}
                 </span>
                 {advanced && (
                   <span data-testid="leader-advanced" className="text-xs text-txt-mid hidden md:inline">

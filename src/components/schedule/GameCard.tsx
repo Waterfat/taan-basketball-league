@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { Game } from '../../types/schedule';
 import { getWinner, hasStaff } from '../../lib/schedule-utils';
 
+export type MatchupSource = 'combo' | 'order';
+
 const TEAM_COLOR_CLASS: Record<string, string> = {
   紅: 'bg-team-red',
   黑: 'bg-team-black',
@@ -21,13 +23,20 @@ const STAFF_LABELS: Record<string, string> = {
 interface Props {
   game: Game;
   baseUrl: string;
+  /**
+   * 控制卡片頂部標籤顯示：
+   *  - 'order'（預設）：顯示「場次 N · HH:MM」（賽程順序視圖）
+   *  - 'combo'：顯示「對戰 N」（對戰組合視圖，不顯示時間 / 工作人員）
+   */
+  matchupSource?: MatchupSource;
 }
 
-export function GameCard({ game, baseUrl }: Props) {
+export function GameCard({ game, baseUrl, matchupSource = 'order' }: Props) {
   const [staffOpen, setStaffOpen] = useState(false);
   const winner = getWinner(game);
   const isFinished = game.status === 'finished';
-  const showStaffToggle = hasStaff(game.staff);
+  const isCombo = matchupSource === 'combo';
+  const showStaffToggle = !isCombo && hasStaff(game.staff);
   const staffCount = Object.values(game.staff).reduce(
     (n, arr) => n + arr.length,
     0,
@@ -44,6 +53,7 @@ export function GameCard({ game, baseUrl }: Props) {
     <article
       data-testid="game-card"
       data-status={game.status}
+      data-matchup-source={matchupSource}
       onClick={handleClick}
       className={[
         'bg-white rounded-2xl border border-warm-2 p-4 md:p-5 transition-all',
@@ -52,6 +62,13 @@ export function GameCard({ game, baseUrl }: Props) {
           : 'cursor-default',
       ].join(' ')}
     >
+      <div
+        data-testid="matchup-label"
+        className="text-xs font-condensed text-txt-light mb-2"
+      >
+        {isCombo ? `對戰 ${game.num}` : `場次 ${game.num}${game.time ? ` · ${game.time}` : ''}`}
+      </div>
+
       <div className="flex items-center justify-between mb-3">
         <TeamSide
           team={game.home}

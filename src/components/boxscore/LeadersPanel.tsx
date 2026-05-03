@@ -1,15 +1,16 @@
 // src/components/boxscore/LeadersPanel.tsx
 import { useEffect, useState, useCallback } from 'react';
 import type { LeaderData } from '../../types/leaders';
+import { LEADER_CATEGORIES_ORDERED } from '../../types/leaders';
 import { fetchData } from '../../lib/api';
 import { getCurrentSeasonKey } from '../../lib/leaders-format';
 import { LeadersSkeleton } from './LeadersSkeleton';
 import { LeadersError } from './LeadersError';
 import { LeadersEmpty } from './LeadersEmpty';
 import { LeaderCard } from './LeaderCard';
+import { TeamLeadersSection } from './TeamLeadersSection';
 
 type Status = 'loading' | 'error' | 'empty' | 'ok';
-const CATEGORIES = ['scoring', 'rebound', 'assist', 'steal', 'block', 'eff'] as const;
 
 export function LeadersPanel() {
   const [data, setData] = useState<LeaderData | null>(null);
@@ -33,7 +34,9 @@ export function LeadersPanel() {
         return;
       }
       const season = leaders[seasonKey];
-      const allEmpty = CATEGORIES.every((c) => (season[c]?.length ?? 0) === 0);
+      const allEmpty = LEADER_CATEGORIES_ORDERED.every(
+        (c) => (season[c]?.length ?? 0) === 0,
+      );
       if (allEmpty) {
         setData(leaders);
         setStatus('empty');
@@ -58,10 +61,16 @@ export function LeadersPanel() {
   const season = data[seasonKey];
 
   return (
-    <div data-testid="leaders-panel" className="px-4 md:px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-      {CATEGORIES.map((c) => (
-        <LeaderCard key={c} category={c} entries={season[c] ?? []} />
-      ))}
-    </div>
+    <>
+      <div
+        data-testid="leaders-panel"
+        className="px-4 md:px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        {LEADER_CATEGORIES_ORDERED.map((c) => (
+          <LeaderCard key={c} category={c} entries={season[c] ?? []} />
+        ))}
+      </div>
+      <TeamLeadersSection season={season} />
+    </>
   );
 }
