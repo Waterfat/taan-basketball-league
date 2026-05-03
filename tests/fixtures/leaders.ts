@@ -1,11 +1,36 @@
 /**
  * Leaders fixture 工廠
  *
- * 模擬 GAS handleStats endpoint 回應結構（依賽季 key 分組，每賽季 6 類別）。
+ * 模擬 GAS handleStats endpoint 回應結構（依賽季 key 分組，每賽季 11 類個人 + 3 張隊伍表）。
  * 對應 src/lib/api.ts 的 fetchData('stats') 結果。
+ *
+ * Issue #14：個人類別由 6 類擴充為 11 類（加 turnover/foul/p2pct/p3pct/ftpct），
+ * 並新增 offense / defense / net 三張隊伍表。
  */
 
-export type LeaderCategory = 'scoring' | 'rebound' | 'assist' | 'steal' | 'block' | 'eff';
+/**
+ * 領先榜個人類別。
+ * 既有 6 類：scoring, rebound, assist, steal, block, eff
+ * 新增 5 類：turnover, foul, p2pct, p3pct, ftpct
+ */
+export type LeaderCategory =
+  | 'scoring'
+  | 'rebound'
+  | 'assist'
+  | 'steal'
+  | 'block'
+  | 'eff'
+  | 'turnover'
+  | 'foul'
+  | 'p2pct'
+  | 'p3pct'
+  | 'ftpct';
+
+/** 11 類顯示順序：既有 6 類在前，新 5 類在後（B-Q6 約定） */
+export const LEADER_CATEGORIES_ORDERED: readonly LeaderCategory[] = [
+  'scoring', 'rebound', 'assist', 'steal', 'block', 'eff',
+  'turnover', 'foul', 'p2pct', 'p3pct', 'ftpct',
+] as const;
 
 export interface LeaderEntry {
   name: string;
@@ -28,9 +53,41 @@ export interface LeaderSeason {
   steal: LeaderEntry[];
   block: LeaderEntry[];
   eff: LeaderEntry[];
+  /** Issue #14 新增 5 類個人 */
+  turnover?: LeaderEntry[];
+  foul?: LeaderEntry[];
+  p2pct?: LeaderEntry[];
+  p3pct?: LeaderEntry[];
+  ftpct?: LeaderEntry[];
+  /** Issue #14 新增 3 張隊伍表 */
+  offense?: TeamLeaderTable;
+  defense?: TeamLeaderTable;
+  net?: TeamLeaderTable;
 }
 
 export type LeaderData = Record<string, LeaderSeason>;
+
+/**
+ * 隊伍領先榜資料（B-5 進攻 / 防守 / 差值）。
+ *
+ * `headers` / `rows` 結構與 GAS handleStats 既有 leaders / offense / defense / net 欄位對齊
+ * （見 public/data/leaders.json 既有 stub）。
+ */
+export interface TeamLeaderTable {
+  /** 表格欄位標題（首欄通常為「隊伍」，後續為各分項統計）*/
+  headers: string[];
+  /** 每列資料（首欄為隊伍 ID，後續為對應 headers 的數值）*/
+  rows: TeamLeaderRow[];
+}
+
+export interface TeamLeaderRow {
+  /** 隊伍 ID（對應 TEAM_CONFIG key，例：「紅」） */
+  team: string;
+  /** 該隊在此表中的排名（1-based） */
+  rank: number;
+  /** 各欄位數值（對應 headers，扣除首欄「隊伍」） */
+  values: number[];
+}
 
 /** 建立單一 entry */
 export function mockLeaderEntry(name: string, team: string, val: number, advanced: Partial<Pick<LeaderEntry, 'p2' | 'p3' | 'ft' | 'off' | 'def'>> = {}): LeaderEntry {
@@ -79,7 +136,7 @@ function mockGenericTop10(seed: string): LeaderEntry[] {
   ));
 }
 
-/** 完整賽季 leader 資料（6 類別都填滿） */
+/** 完整賽季 leader 資料（既有 6 類別都填滿，向後相容） */
 export function mockFullLeaders(): LeaderData {
   return {
     '25': {
@@ -90,6 +147,107 @@ export function mockFullLeaders(): LeaderData {
       steal: mockGenericTop10('抄截'),
       block: mockGenericTop10('阻攻'),
       eff: mockGenericTop10('效率'),
+    },
+  };
+}
+
+/**
+ * 進階 11 類個人 leader（Issue #14 新增）。
+ * 既有 6 類沿用 mockFullLeaders，新增 5 類使用通用工廠。
+ */
+export function mockExtendedLeaders(): LeaderData {
+  const base = mockFullLeaders()['25'];
+  return {
+    '25': {
+      ...base,
+      turnover: mockGenericTop10('失誤'),
+      foul: mockGenericTop10('犯規'),
+      p2pct: mockPercentageLeaders('2P', [55, 52, 50, 48, 46, 45, 43, 42, 40, 38]),
+      p3pct: mockPercentageLeaders('3P', [42, 38, 35, 32, 30, 28, 25, 22, 20, 18]),
+      ftpct: mockPercentageLeaders('FT', [88, 85, 82, 80, 78, 75, 72, 70, 68, 65]),
+    },
+  };
+}
+
+/**
+ * 完整 11 類個人 + 3 張隊伍表（一鍵驗收 B-3 / B-4 / B-5）。
+ */
+export function mockExtendedLeadersWithTeams(): LeaderData {
+  const extended = mockExtendedLeaders()['25'];
+  return {
+    '25': {
+      ...extended,
+      offense: mockTeamOffense(),
+      defense: mockTeamDefense(),
+      net: mockTeamNet(),
+    },
+  };
+}
+
+/** 百分率類 leader（2P% / 3P% / FT%）— val 直接是百分比數字 */
+function mockPercentageLeaders(seed: string, vals: number[]): LeaderEntry[] {
+  const teams = ['紅', '黑', '藍', '綠', '黃', '白'];
+  return vals.map((v, i) => mockLeaderEntry(
+    `${seed}王${i + 1}`,
+    teams[i % teams.length],
+    v,
+  ));
+}
+
+/** 隊伍進攻表（PPG + 各分項，用於 B-5.1 ⚔️） */
+export function mockTeamOffense(): TeamLeaderTable {
+  return {
+    headers: ['隊伍', 'PPG', '2P', '3P', 'FT', 'AST'],
+    rows: [
+      { team: '綠', rank: 1, values: [78.5, 28, 7, 11, 18] },
+      { team: '紅', rank: 2, values: [76.2, 27, 6, 10, 17] },
+      { team: '黑', rank: 3, values: [74.0, 26, 5, 12, 16] },
+      { team: '黃', rank: 4, values: [71.8, 25, 6, 9, 15] },
+      { team: '白', rank: 5, values: [68.5, 23, 5, 11, 14] },
+      { team: '藍', rank: 6, values: [62.0, 21, 4, 8, 12] },
+    ],
+  };
+}
+
+/** 隊伍防守表（失分 + 各分項，用於 B-5.1 🛡️） */
+export function mockTeamDefense(): TeamLeaderTable {
+  return {
+    headers: ['隊伍', 'Opp PPG', 'STL', 'BLK', 'TO_FORCED'],
+    rows: [
+      { team: '綠', rank: 1, values: [62.0, 9, 3, 12] },
+      { team: '紅', rank: 2, values: [64.5, 8, 4, 11] },
+      { team: '黑', rank: 3, values: [66.8, 7, 3, 10] },
+      { team: '黃', rank: 4, values: [70.0, 6, 2, 9] },
+      { team: '白', rank: 5, values: [73.5, 5, 2, 8] },
+      { team: '藍', rank: 6, values: [78.5, 4, 1, 7] },
+    ],
+  };
+}
+
+/** 隊伍進攻−防守差值表（用於 B-5.1 📈） */
+export function mockTeamNet(): TeamLeaderTable {
+  return {
+    headers: ['隊伍', 'Net'],
+    rows: [
+      { team: '綠', rank: 1, values: [16.5] },
+      { team: '紅', rank: 2, values: [11.7] },
+      { team: '黑', rank: 3, values: [7.2] },
+      { team: '黃', rank: 4, values: [1.8] },
+      { team: '白', rank: 5, values: [-5.0] },
+      { team: '藍', rank: 6, values: [-16.5] },
+    ],
+  };
+}
+
+/** 部分隊伍表為空（驗 B-Q2：缺一張不影響其他）*/
+export function mockExtendedLeadersWithPartialTeams(): LeaderData {
+  const extended = mockExtendedLeaders()['25'];
+  return {
+    '25': {
+      ...extended,
+      offense: { headers: [], rows: [] },
+      defense: mockTeamDefense(),
+      net: mockTeamNet(),
     },
   };
 }

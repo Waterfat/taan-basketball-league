@@ -103,3 +103,55 @@ export function mockEmptyDragonboard(): DragonData {
     players: [],
   };
 }
+
+/**
+ * 含選秀規則連結的龍虎榜（驗 C3：📋 查看完整選秀規則公告）。
+ * threshold 設在中段，平民區 + 奴隸區皆有球員。
+ */
+export function mockDragonWithRulesLink(): DragonData {
+  return {
+    season: 25,
+    phase: '賽季進行中',
+    civilianThreshold: 8,
+    columns: ['出席', '輪值', '拖地', '季後賽'],
+    players: [
+      mockDragonPlayer({ rank: 1, name: '韋承志', team: '紅', tag: '裁', att: 8, duty: 8, mop: 0, total: 16 }),
+      mockDragonPlayer({ rank: 2, name: '吳家豪', team: '綠', att: 6, duty: 6, mop: 0, total: 12 }),
+      mockDragonPlayer({ rank: 3, name: '李昊明', team: '黑', tag: '裁', att: 8, duty: 3, mop: 1, total: 12 }),
+      mockDragonPlayer({ rank: 4, name: '趙尹旋', team: '紅', att: 7, duty: 3, mop: 0, total: 10 }),
+      mockDragonPlayer({ rank: 5, name: '李政軒', team: '黑', tag: '裁', att: 8, duty: 1, mop: 0, total: 9 }),
+      mockDragonPlayer({ rank: 6, name: '楊承達', team: '黑', att: 4, duty: 3, mop: 0, total: 7 }),
+      mockDragonPlayer({ rank: 7, name: '陳鈞銘', team: '黃', att: 5, duty: 2, mop: 0, total: 7 }),
+      mockDragonPlayer({ rank: 8, name: '吳軒宇', team: '紅', att: 4, duty: 2, mop: 0, total: 6 }),
+      mockDragonPlayer({ rank: 9, name: '林志柏', team: '黑', att: 4, duty: 2, mop: 0, total: 6 }),
+      mockDragonPlayer({ rank: 10, name: '江錒哲', team: '黃', att: 4, duty: 1, mop: 0, total: 5 }),
+    ],
+    rulesLink: 'https://example.com/rules',
+  };
+}
+
+/**
+ * 龍虎榜分組展示（驗 C1：平民區 / 奴隸區 標題 + 完整文案）。
+ * threshold = 10：平民區 5 人（rank 1~5 total >= 10），奴隸區 5 人（rank 6~10）。
+ */
+export function mockDragonGroupingShowcase(): DragonData {
+  return {
+    season: 25,
+    phase: '賽季進行中',
+    civilianThreshold: 10,
+    columns: ['出席', '輪值', '拖地', '季後賽'],
+    players: [
+      mockDragonPlayer({ rank: 1, name: '韋承志', team: '紅', tag: '裁', total: 16 }),
+      mockDragonPlayer({ rank: 2, name: '吳家豪', team: '綠', total: 14 }),
+      mockDragonPlayer({ rank: 3, name: '李昊明', team: '黑', tag: '裁', total: 12 }),
+      mockDragonPlayer({ rank: 4, name: '趙尹旋', team: '紅', total: 11 }),
+      mockDragonPlayer({ rank: 5, name: '李政軒', team: '黑', tag: '裁', total: 10 }),
+      mockDragonPlayer({ rank: 6, name: '楊承達', team: '黑', total: 8 }),
+      mockDragonPlayer({ rank: 7, name: '陳鈞銘', team: '黃', total: 7 }),
+      mockDragonPlayer({ rank: 8, name: '吳軒宇', team: '紅', total: 6 }),
+      mockDragonPlayer({ rank: 9, name: '林志柏', team: '黑', total: 5 }),
+      mockDragonPlayer({ rank: 10, name: '江錒哲', team: '黃', total: 4 }),
+    ],
+    rulesLink: 'https://example.com/rules',
+  };
+}

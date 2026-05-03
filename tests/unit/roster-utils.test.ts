@@ -2,7 +2,14 @@
 // Covers: U-1, U-2, U-3, U-4, U-5, U-6, U-7
 
 import { describe, it, expect } from 'vitest';
-import { getAttClass, getAttBgStyle, isAboveThreshold, formatPlayoff } from '../../src/lib/roster-utils';
+import {
+  getAttClass,
+  getAttBgStyle,
+  isAboveThreshold,
+  formatPlayoff,
+  computeAttendanceSummary,
+} from '../../src/lib/roster-utils';
+import type { AttValue } from '../../src/types/roster';
 
 describe('getAttClass', () => {
   it('U-1/U-7: att=1 → contains att-present class', () => {
@@ -40,6 +47,40 @@ describe('formatPlayoff', () => {
   });
   it('U-6: playoff=0 → "0"', () => {
     expect(formatPlayoff(0)).toBe('0');
+  });
+});
+
+describe('computeAttendanceSummary', () => {
+  it('U-501a: att 全 1（共 6 場）→ rate=100, played=6, total=6', () => {
+    const att: AttValue[] = [1, 1, 1, 1, 1, 1, '?', '?', '?', '?'];
+    const result = computeAttendanceSummary(att);
+    expect(result.played).toBe(6);
+    expect(result.total).toBe(6);
+    expect(result.rate).toBe(100);
+  });
+
+  it('U-501b: att=[1,0,1,1,1,1,?,?,?,?]（含 0）→ rate=83, played=5, total=6', () => {
+    const att: AttValue[] = [1, 0, 1, 1, 1, 1, '?', '?', '?', '?'];
+    const result = computeAttendanceSummary(att);
+    expect(result.played).toBe(5);
+    expect(result.total).toBe(6);
+    expect(result.rate).toBe(83);
+  });
+
+  it('U-501c: att=[0,1,1,1,0,x,?,?,?,?]（含 x，x 計入 total 不計 played）→ rate=50, played=3, total=6', () => {
+    const att: AttValue[] = [0, 1, 1, 1, 0, 'x', '?', '?', '?', '?'];
+    const result = computeAttendanceSummary(att);
+    expect(result.played).toBe(3);
+    expect(result.total).toBe(6);
+    expect(result.rate).toBe(50);
+  });
+
+  it('U-501d: att 全 ?（賽季尚未開始）→ rate=0, played=0, total=0', () => {
+    const att: AttValue[] = ['?', '?', '?', '?', '?', '?', '?', '?', '?', '?'];
+    const result = computeAttendanceSummary(att);
+    expect(result.played).toBe(0);
+    expect(result.total).toBe(0);
+    expect(result.rate).toBe(0);
   });
 });
 

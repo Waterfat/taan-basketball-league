@@ -41,6 +41,51 @@ export interface DragonEntry {
   total: number;
 }
 
+/**
+ * 對戰組合單筆資料（B1 / B7 「對戰組合」視圖）。
+ * combo 為對戰組合編號（1~6），home / away 為隊伍 ID。
+ * homeScore / awayScore / status 為比賽結果（已開賽才有）。
+ */
+export interface MatchupCombo {
+  combo: number;
+  home: string;
+  away: string;
+  homeScore?: number;
+  awayScore?: number;
+  status?: 'upcoming' | 'finished';
+}
+
+/**
+ * 賽程順序單筆資料（B1 / B7 「賽程順序」視圖）。
+ * num 為當週第幾場（1~6），time 為開賽時間。
+ * games[].home / .away 任一非空 → 視為「順序已公告」。
+ */
+export interface MatchupGame {
+  num: number;
+  time: string;
+  home: string;
+  away: string;
+  homeScore?: number;
+  awayScore?: number;
+  status?: 'upcoming' | 'finished';
+}
+
+/**
+ * 本週對戰資料（Issue #14 B1 新增）。
+ *
+ * 設計：home page 從 `home.json` 直接拿到完整 6 組對戰，不必再 fetch schedule.json。
+ * 智慧切換邏輯（B-2.*）：
+ *   - games[] 任一筆有 home/away → 預設「賽程順序」
+ *   - games[] 全部 home/away 為空 → 預設「對戰組合」+ 顯示「順序尚未公告」提示
+ */
+export interface WeekMatchups {
+  week: number;
+  date: string;
+  venue: string;
+  combos: MatchupCombo[];
+  games: MatchupGame[];
+}
+
 export interface HomeData {
   season: number;
   currentWeek: number;
@@ -49,6 +94,8 @@ export interface HomeData {
     date: string;
     venue: string;
   };
+  /** Issue #14 B1：本週 6 組對戰預覽（含 combo 與 games 兩種視圖） */
+  weekMatchups?: WeekMatchups;
   standings: HomeStandingTeam[];
   dragonTop10: DragonEntry[];
   miniStats: {
@@ -159,5 +206,60 @@ export function mockHomeDataWithFewPlayers(): HomeData {
 export function mockHomeDataWithFewDragon(): HomeData {
   const data = mockHomeData();
   data.dragonTop10 = data.dragonTop10.slice(0, 2);
+  return data;
+}
+
+/** 標準 6 組對戰組合（紅黑、藍綠、黃白；六隊兩兩配對）*/
+function mockSixCombos(): MatchupCombo[] {
+  return [
+    { combo: 1, home: '白', away: '紅', status: 'upcoming' },
+    { combo: 2, home: '黃', away: '黑', status: 'upcoming' },
+    { combo: 3, home: '藍', away: '綠', status: 'upcoming' },
+    { combo: 4, home: '黑', away: '白', status: 'upcoming' },
+    { combo: 5, home: '紅', away: '藍', status: 'upcoming' },
+    { combo: 6, home: '綠', away: '黃', status: 'upcoming' },
+  ];
+}
+
+/** 標準 6 場賽程順序（已公告 home/away 與 time）*/
+function mockSixGamesPublished(): MatchupGame[] {
+  return [
+    { num: 1, time: '07:30', home: '白', away: '紅', status: 'upcoming' },
+    { num: 2, time: '08:30', home: '黃', away: '黑', status: 'upcoming' },
+    { num: 3, time: '09:30', home: '藍', away: '綠', status: 'upcoming' },
+    { num: 4, time: '10:30', home: '黑', away: '白', status: 'upcoming' },
+    { num: 5, time: '11:30', home: '紅', away: '藍', status: 'upcoming' },
+    { num: 6, time: '12:30', home: '綠', away: '黃', status: 'upcoming' },
+  ];
+}
+
+/** 賽程順序未公告（home/away 為空字串）*/
+function mockSixGamesUnpublished(): MatchupGame[] {
+  return Array.from({ length: 6 }, (_, i) => ({
+    num: i + 1,
+    time: '',
+    home: '',
+    away: '',
+    status: 'upcoming' as const,
+  }));
+}
+
+/**
+ * Home + 本週 6 組對戰（Issue #14 B1 用）。
+ *
+ * @param opts.gamesPublished true → games[] 含 home/away（B-2.2 走「賽程順序」）；
+ *                            false → games[] 空 home/away（B-2.1 走「對戰組合」+ 提示）。
+ *                            預設 true。
+ */
+export function mockHomeWithWeekMatchups(opts: { gamesPublished?: boolean } = {}): HomeData {
+  const { gamesPublished = true } = opts;
+  const data = mockHomeData();
+  data.weekMatchups = {
+    week: data.currentWeek,
+    date: data.scheduleInfo.date,
+    venue: data.scheduleInfo.venue,
+    combos: mockSixCombos(),
+    games: gamesPublished ? mockSixGamesPublished() : mockSixGamesUnpublished(),
+  };
   return data;
 }

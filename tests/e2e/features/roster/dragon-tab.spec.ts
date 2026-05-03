@@ -11,15 +11,20 @@
  *   AC-10（playoff=null → 顯示「—」）
  *   AC-19（dragon.players 空 → 「龍虎榜資料尚未產生」訊息）
  *   AC-20（球員不可點，純展示）[qa-v2 補充]
+ *   E-801（B-10.1）（🧑 平民區 分組標題可見）
+ *   E-802（B-10.2）（⛓️ 奴隸區 分組標題可見）
+ *   E-803（B-12.1）（📋 查看完整選秀規則公告 → 連結）
+ *   E-804（BQ-5）（rules link target="_blank" + rel noopener noreferrer）
  *
  * 測試資料策略：
  *   靜態前置條件：mockDragonboardWithThreshold()（threshold=10，rank 1-2 超過）
  *   空狀態：mockEmptyDragonboard()（players=[]）
+ *   規則連結：mockDragonWithRulesLink()（rulesLink 必有 + threshold=8）
  */
 
 import { test, expect } from '@playwright/test';
 import { mockFullRoster } from '../../../fixtures/roster';
-import { mockFullDragonboard, mockDragonboardWithThreshold, mockEmptyDragonboard } from '../../../fixtures/dragon';
+import { mockFullDragonboard, mockDragonboardWithThreshold, mockEmptyDragonboard, mockDragonWithRulesLink } from '../../../fixtures/dragon';
 import { mockRosterAndDragon } from '../../../helpers/mock-api';
 
 test.describe('Roster Page — 龍虎榜 tab @roster @dragon', () => {
@@ -130,5 +135,47 @@ test.describe('Roster Page — 龍虎榜 tab @roster @dragon', () => {
     expect(tagName).not.toBe('a');
     // 也不包含 <a> 子元素
     await expect(nameCell.locator('a')).toHaveCount(0);
+  });
+});
+
+// ══════════════════════════════════════════════════════
+// E-803, E-804: 選秀規則連結（B-12.1, BQ-5）
+// ══════════════════════════════════════════════════════
+test.describe('Dragon tab — 選秀規則連結 @roster @dragon @issue-14', () => {
+  // E-803 (B-12.1): 規則連結存在且文字正確
+  test('E-803: 表格下方「📋 查看完整選秀規則公告 →」連結可見', { tag: ['@roster', '@dragon', '@issue-14'] }, async ({ page }) => {
+    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockDragonWithRulesLink() });
+    const dragonResponse = page.waitForResponse(/dragon\.json/);
+    await page.goto('roster?tab=dragon');
+    await dragonResponse;
+
+    // UI 結構：規則連結可見
+    const rulesLink = page.locator('[data-testid="dragon-rules-link"]');
+    await expect(rulesLink).toBeVisible();
+
+    // 互動層：連結文字正確
+    await expect(rulesLink).toContainText('📋 查看完整選秀規則公告');
+
+    // 資料驗證：href 指向 fixture 中的規則 URL
+    await expect(rulesLink).toHaveAttribute('href', 'https://example.com/rules');
+  });
+
+  // E-804 (BQ-5): 外部連結安全屬性
+  test('E-804 [qa-v2 補充]: 規則連結有 target="_blank" + rel 含 noopener 與 noreferrer', { tag: ['@roster', '@dragon', '@issue-14'] }, async ({ page }) => {
+    await mockRosterAndDragon(page, { roster: mockFullRoster(), dragon: mockDragonWithRulesLink() });
+    const dragonResponse = page.waitForResponse(/dragon\.json/);
+    await page.goto('roster?tab=dragon');
+    await dragonResponse;
+
+    const rulesLink = page.locator('[data-testid="dragon-rules-link"]');
+    await expect(rulesLink).toBeVisible();
+
+    // 互動層：target="_blank"
+    await expect(rulesLink).toHaveAttribute('target', '_blank');
+
+    // 資料驗證：rel 同時含 noopener 與 noreferrer
+    const rel = await rulesLink.getAttribute('rel');
+    expect(rel).toContain('noopener');
+    expect(rel).toContain('noreferrer');
   });
 });

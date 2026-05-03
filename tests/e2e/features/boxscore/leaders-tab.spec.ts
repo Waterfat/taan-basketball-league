@@ -3,13 +3,13 @@
  *
  * @tag @boxscore
  * Coverage:
- *   AC-9（leaders tab 顯示 6 類別獨立卡片）
+ *   AC-9（leaders tab 顯示 11 類別獨立卡片，Issue #14 由 6 → 11 類）
  *   AC-9b（每個類別卡片含 top 10）
  *   AC-10（每位球員顯示 rank、名字、隊色點、數值）
  *   AC-10b（scoring 卡片顯示進階指標 2P%/3P%/FT%）
  *   AC-10c（rebound 卡片顯示進階指標 進攻/防守籃板）
  *
- * 類別清單：scoring / rebound / assist / steal / block / eff
+ * 類別清單（Issue #14 後）：scoring / rebound / assist / steal / block / eff / turnover / foul / p2pct / p3pct / ftpct
  */
 
 import { test, expect } from '@playwright/test';
@@ -18,6 +18,7 @@ import {
 } from '../../../fixtures/boxscore';
 import {
   mockFullLeaders,
+  mockExtendedLeaders,
 } from '../../../fixtures/leaders';
 import {
   mockBoxscoreAndLeaders,
@@ -31,15 +32,15 @@ const ALL_BOX_GAMES = [
 ];
 
 test.describe('Leaders Tab @boxscore', () => {
-  // ────── AC-9: 6 類別獨立卡片 ──────
-  test('AC-9: leaders tab 顯示 6 類別獨立卡片', async ({ page }) => {
-    await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockFullLeaders() });
+  // ────── AC-9: 11 類別獨立卡片（Issue #14 BQ-6 由 6 → 11） ──────
+  test('AC-9: leaders tab 顯示 11 類別獨立卡片', async ({ page }) => {
+    await mockBoxscoreAndLeaders(page, { boxscore: ALL_BOX_GAMES, leaders: mockExtendedLeaders() });
     await page.goto('boxscore?tab=leaders');
 
     const cards = page.locator('[data-testid="leaders-card"]');
-    await expect(cards).toHaveCount(6);
+    await expect(cards).toHaveCount(11);
 
-    for (const cat of ['scoring', 'rebound', 'assist', 'steal', 'block', 'eff']) {
+    for (const cat of ['scoring', 'rebound', 'assist', 'steal', 'block', 'eff', 'turnover', 'foul', 'p2pct', 'p3pct', 'ftpct']) {
       await expect(page.locator(`[data-testid="leaders-card"][data-category="${cat}"]`)).toBeVisible();
     }
   });
