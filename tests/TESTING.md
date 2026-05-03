@@ -43,11 +43,7 @@ vitest / playwright 自動載入。CI 由 GitHub Actions secrets 注入同名 va
 ## 特殊測試流程
 
 ### 三層 fallback 驗證
-站台 `src/lib/api.ts` 三層 fallback：Sheets API → static JSON → error state。**E2E 必須驗端到端真實鏈路**：
-
-- 🚫 禁止 `page.route` / `mockXxxAPI` helper / `route.fulfill`
-- Sheets / JSON 任一掛 → component 三狀態接住，**不是讓測試 fallback 後標 PASS**
-- 想要 deterministic 假資料 → 寫成 unit / integration test，不寫進 `tests/e2e/`
+站台 `src/lib/api.ts` 三層 fallback：Sheets API → static JSON → error state。E2E 必須驗端到端真實鏈路 — Sheets / JSON 任一掛 → component 三狀態接住，**不是讓測試 fallback 後標 PASS**。
 
 ## 已知測試限制
 
